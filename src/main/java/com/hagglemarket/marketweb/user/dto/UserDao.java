@@ -19,7 +19,7 @@ public class UserDao {
 
         String sql = "select * from user where userid = ? and password = ?";
 
-        List<UserVO> userVOS = new ArrayList<UserVO>();
+        List<UserVO> userVOS = new ArrayList<>();
 
         try{
             RowMapper<UserVO> rowMapper = BeanPropertyRowMapper.newInstance(UserVO.class);
