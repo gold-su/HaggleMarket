@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class UserVO {
     private int userNo;
-    private String userid;
+    private String userId;
     private String userName;
     private String passWord;
     private String phoneNumber;

@@ -23,7 +23,7 @@ public class UserDao {
 
         try{
             RowMapper<UserVO> rowMapper = BeanPropertyRowMapper.newInstance(UserVO.class);
-            userVOS = jdbcTemplate.query(sql, rowMapper, userVO.getUserid(), userVO.getPassWord());
+            userVOS = jdbcTemplate.query(sql, rowMapper, userVO.getUserId(), userVO.getPassWord());
         }
         catch (Exception e){
             e.printStackTrace();
