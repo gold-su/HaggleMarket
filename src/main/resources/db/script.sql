@@ -27,7 +27,7 @@ create table auctionpost
 (
     auctionPostId int auto_increment
         primary key,
-    userId        int         not null,
+    userno        int         not null,
     stockCost     int         not null,
     categoryId    int         not null,
     title         varchar(50) not null,
@@ -40,7 +40,7 @@ create table auctionpost
     constraint auctionPost_categoryId_categoryId_fk
         foreign key (categoryId) references category (categoryId),
     constraint auctionPost_user_userId_fk
-        foreign key (userId) references user (userId)
+        foreign key (userno) references user (userno)
 );
 
 create table bidder
@@ -48,20 +48,20 @@ create table bidder
     bidderId      int auto_increment
         primary key,
     auctionPostId int      not null,
-    userId        int      not null,
+    userno        int      not null,
     bidCost       int      not null,
     created       datetime null,
     constraint bidder_auctionPost_auctionPostId_fk
         foreign key (auctionPostId) references auctionpost (auctionPostId),
     constraint bidder_user_userId_fk
-        foreign key (userId) references user (userId)
+        foreign key (userno) references user (userno)
 );
 
 create table post
 (
     postId     int auto_increment
         primary key,
-    userId     int         not null,
+    userno     int         not null,
     categoryId int         not null,
     title      varchar(50) not null,
     cost       int         not null,
@@ -73,7 +73,7 @@ create table post
     constraint post_categoryId_categoryId_fk
         foreign key (categoryId) references category (categoryId),
     constraint post_user_userId_fk
-        foreign key (userId) references user (userId)
+        foreign key (userno) references user (userno)
 );
 
 create table chattinggroup
@@ -99,14 +99,14 @@ create table chattingcontent
     chattingRoomId    int         not null,
     chattingContentId int auto_increment
         primary key,
-    userId            int         not null,
+    userno            int         not null,
     created           datetime    null,
     updated           datetime    null,
     status            varchar(10) null,
     constraint chattingContent_chattingGroup_chattingRoomId_fk
         foreign key (chattingRoomId) references chattinggroup (chattingRoomId),
     constraint chattingContent_user_userId_fk
-        foreign key (userId) references user (userId)
+        foreign key (userno) references user (userno)
 );
 
 create table enddeal
@@ -144,24 +144,24 @@ create table searchhistory
 (
     searchId   int auto_increment
         primary key,
-    userId     int         not null,
+    userno     int         not null,
     searchText varchar(60) not null,
     constraint searchHistory_user_userId_fk
-        foreign key (userId) references user (userId)
+        foreign key (userno) references user (userno)
 );
 
 create table wishlist
 (
     wishListId int auto_increment
         primary key,
-    userId     int      not null,
+    userno     int      not null,
     postId     int      not null,
     created    datetime null,
     updated    datetime null,
     constraint wishList_post_userId_fk_2
         foreign key (postId) references post (postId),
     constraint wishList_user_userId_fk
-        foreign key (userId) references user (userId)
+        foreign key (userno) references user (userno)
 );
 
 
