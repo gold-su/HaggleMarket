@@ -1,0 +1,37 @@
+package com.hagglemarket.marketweb.user.dto;
+
+import com.hagglemarket.marketweb.user.entity.UserVO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class UserDao {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    //로그인
+    public UserVO selectUser(UserVO userVO) {
+        System.out.println("로그인 데이터베이스 접근중");
+
+        String sql = "select * from user where userId = ? and passWord = ?";
+
+        List<UserVO> userVOS = new ArrayList<>();
+
+        try{
+            RowMapper<UserVO> rowMapper = BeanPropertyRowMapper.newInstance(UserVO.class);
+            userVOS = jdbcTemplate.query(sql, rowMapper, userVO.getUserId(), userVO.getPassWord());
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return  userVOS.size() > 0 ? userVOS.get(0) : null;
+    }
+
+}
