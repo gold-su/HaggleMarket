@@ -1,6 +1,6 @@
 package com.hagglemarket.marketweb.user.controller;
 
-import com.hagglemarket.marketweb.user.dto.UserVO;
+import com.hagglemarket.marketweb.user.entity.UserVO;
 import com.hagglemarket.marketweb.user.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@Controller
+@Controller //로그인 확인
 public class UserController {
 
     @Autowired

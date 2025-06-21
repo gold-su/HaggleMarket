@@ -1,6 +1,6 @@
 package com.hagglemarket.marketweb.user.service;
 
-import com.hagglemarket.marketweb.user.dto.UserVO;
+import com.hagglemarket.marketweb.user.entity.UserVO;
 import com.hagglemarket.marketweb.user.dto.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
