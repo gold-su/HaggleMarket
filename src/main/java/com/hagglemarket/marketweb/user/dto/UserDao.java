@@ -17,13 +17,13 @@ public class UserDao {
     public UserVO selectUser(UserVO userVO) {
         System.out.println("로그인 데이터베이스 접근중");
 
-        String sql = "select * from user where userid = ? and passWord = ?";
+        String sql = "select * from user where userId = ? and passWord = ?";
 
         List<UserVO> userVOS = new ArrayList<>();
 
         try{
             RowMapper<UserVO> rowMapper = BeanPropertyRowMapper.newInstance(UserVO.class);
-            userVOS = jdbcTemplate.query(sql, rowMapper, userVO.getUserid(), userVO.getPassWord());
+            userVOS = jdbcTemplate.query(sql, rowMapper, userVO.getUserId(), userVO.getPassWord());
         }
         catch (Exception e){
             e.printStackTrace();
