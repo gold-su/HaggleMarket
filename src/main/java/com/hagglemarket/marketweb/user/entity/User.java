@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "user") //테이블 매핑
+@Table(name = "users") //테이블 매핑
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) //기본 생성자 생성 (보안을 위한 protected)
