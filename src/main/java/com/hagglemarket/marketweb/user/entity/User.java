@@ -53,7 +53,8 @@ public class User {
     //미리 정해진 값들 중 하나를 선택하도록 강제하는 열거형 타입.
     @Enumerated(EnumType.STRING) //<- string 타입으로 설정, .ORDINAL로 하면 (0,1,2)
     private UserStatus status;
-    //위 status의 값을 미리 설정
+    
+    //위 status의 값을 미리 설정, class를 만들어서 따로 분류하기도 함 (재사용성, 가독성) 근데 적을 것 같아서 같이 선언함
     public enum UserStatus {
         ACTIVE, //활성
         INACTIVE, //비활성
