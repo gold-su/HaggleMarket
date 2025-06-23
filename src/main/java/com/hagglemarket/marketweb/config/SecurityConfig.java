@@ -2,6 +2,7 @@ package com.hagglemarket.marketweb.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.userdetails.User;
@@ -15,15 +16,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class SecurityConfig {
 
     @Bean
+    //로그인 필터처리하는 곳
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/user/**", "/css/**").permitAll()
+                        .requestMatchers("/users/login").permitAll()
+                        //api를 허용함
+                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/register").permitAll()
+                        //css등 파일들을 허용함
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf.disable()) // REST API 형태거나 csrf 문제시 꺼도 됨
-                .formLogin().disable();  // 시큐리티 기본 로그인 기능 비활성화
-
+                .formLogin().disable();
         return http.build();
     }
 

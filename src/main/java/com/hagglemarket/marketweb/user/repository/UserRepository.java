@@ -4,6 +4,7 @@ package com.hagglemarket.marketweb.user.repository;
 import com.hagglemarket.marketweb.user.entity.User;
 //JPA REPOSITORY 인터페이스
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 //NULL 안정성 클래스
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ public interface UserRepository extends JpaRepository<User, Integer> { //User는
     //nickName이 이미 존재하는지 확인
     //SELECT COUNT(*) > 0 FROM user WHERE nickName = ?
     boolean existsByNickName(String nickName);
+
 
     //null이 나올수도 아닐수도 있기 때문에 Optional로 구현
     //userId를 기준으로 DB에서 찾는 메서드

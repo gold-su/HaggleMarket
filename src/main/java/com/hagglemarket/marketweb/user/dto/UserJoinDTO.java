@@ -33,5 +33,4 @@ public class UserJoinDTO {
     private String address;
 
     private String imageURL;
-
 }

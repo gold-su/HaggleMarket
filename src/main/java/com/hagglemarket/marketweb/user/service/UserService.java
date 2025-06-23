@@ -2,12 +2,12 @@ package com.hagglemarket.marketweb.user.service;
 
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.entity.User;
-import com.hagglemarket.marketweb.user.dao.UserDao;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service //비즈니스 로직 수행하는 클래스 지정
 @RequiredArgsConstructor // final 필드 생성자 자동 생성
@@ -15,9 +15,6 @@ public class UserService {
     //final == 생성자에서만 초기화 가능, 불변
     private final UserRepository userRepository; //JPA 인터페이스
     private final PasswordEncoder passwordEncoder; //스프링 시큐리티 비밀번호 암호화 인터페이스
-
-//    @Autowired
-//    private UserDao userDao;
 
 
     //회원가입 처리
@@ -63,8 +60,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-
-
 //    //로그인 확인
 //    public UserVO loginConfirm(UserVO userVO) {
 //        System.out.println("로그인 확인중");
@@ -79,4 +74,34 @@ public class UserService {
 //
 //        return loginedUserVo;
 //    }
+
+    //로그인 로직
+    public User login(String userId, String password){
+        System.out.println("[UserService] d");
+        //데이터베이스에서 가져온 객체에 유저클래스 형식으로 저장함
+        //만약 유저와 같은 값이 없다면 null값이 저장되어 날라옴
+        Optional<User> userget = userRepository.findByUserId(userId);
+
+        //만약 유저값이 비어있다면 예외처리
+        if(userget.isEmpty()){
+            throw new RuntimeException("존재하지 않는 사용자 입니다");
+        }
+
+        //받아온 유저값을 객체에 저장
+        User user = userget.get();
+
+        //유저의 비밀번호가 일치하지않으면 오류
+        //현재 암호화가 구현X 그렇기 때문에 추후에 실행예정
+        /*if(!passwordEncoder.matches(password, user.getPassword())){
+            throw new RuntimeException("비밀번호가 일치하지 않습니다");
+        }*/
+
+        //비밀번호를 비교하여처리
+        if (!password.equals(user.getPassword())) {
+            throw new RuntimeException("비밀번호가 일치하지 않습니다");
+        }
+
+        //예외처리가 안되었으면 유저정보를 반환
+        return user;
+    }
 }
