@@ -4,7 +4,6 @@ package com.hagglemarket.marketweb.user.repository;
 import com.hagglemarket.marketweb.user.entity.User;
 //JPA REPOSITORY 인터페이스
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 //NULL 안정성 클래스
 import java.util.Optional;
 
