@@ -1,11 +1,14 @@
 package com.hagglemarket.marketweb.user.controller;
 
 import com.hagglemarket.marketweb.user.dto.LoginRequestDTO;
+import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.service.UserService;
+import com.hagglemarket.marketweb.user.util.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,16 +18,24 @@ import org.springframework.web.bind.annotation.*;
 public class UserApiController {
     //html할당
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     //비즈니스 로직을 담당할 UserService 주입
     //회원가입 기능 실제로 수행
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         System.out.println("login");
-        //유저정보를 반환하여 저장
+
         User user = userService.login(loginRequestDTO.getUserId(), loginRequestDTO.getPassword());
-        //로그인 성공시 json파일 형식을 반환
-        return ResponseEntity.ok(user);
+
+        if(user == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = jwtUtil.generateToken(user.getUserId());
+        LoginResponseDTO response = new LoginResponseDTO(token, user.getUserId());
+
+        return ResponseEntity.ok(response);
     }
 
     //박동수 구현
