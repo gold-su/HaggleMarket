@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "users")
+@Table(name = "user")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,22 +17,22 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "userNo")
+    @Column(name = "user_no")
     private int userNo;
 
-    @Column(name = "userId", unique = true, nullable = false, length = 20)
+    @Column(name = "user_id", unique = true, nullable = false, length = 20)
     private String userId;
 
-    @Column(name = "userName", nullable = false, length = 20)
+    @Column(name = "user_name", nullable = false, length = 20)
     private String userName;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "phoneNumber", nullable = false, length = 11, unique = true)
+    @Column(name = "phone_number", nullable = false, length = 11, unique = true)
     private String phoneNumber;
 
-    @Column(name = "nickName", nullable = false, length = 15)
+    @Column(name = "nick_name", nullable = false, length = 15)
     private String nickName;
 
     @Column(name = "address", nullable = false, length = 30)
@@ -41,12 +41,12 @@ public class User {
     @Column(name = "email", nullable = false, length = 50, unique = true)
     private String email;
 
-    @Column(name = "imageURL", columnDefinition = "TEXT")
-    private String imageURL;
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
 
-    @Column(name = "created", updatable = false)
+    @Column(name = "created_at", updatable = false)
     @CreationTimestamp
-    private LocalDateTime created;
+    private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -62,6 +62,6 @@ public class User {
     @Column(name = "rating")
     private BigDecimal rating;
 
-    @Column(name = "roadRating")
+    @Column(name = "road_rating")
     private BigDecimal roadRating;
 }

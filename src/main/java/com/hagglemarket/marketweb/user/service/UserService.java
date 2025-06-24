@@ -53,7 +53,7 @@ public class UserService {
                 .phoneNumber(dto.getPhoneNumber())
                 .nickName(dto.getNickName())
                 .address(dto.getAddress())
-                .imageURL(dto.getImageURL())
+                .imageUrl(dto.getImageURL())
                 .build();
 
         //user 객체를 DB에 저장 (Insert 쿼리 발생)
