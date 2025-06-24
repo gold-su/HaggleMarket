@@ -47,7 +47,9 @@ public class UserController {
 //        return nextPage;
 //    }
 
-    //박동수 구현
+
+
+
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
     public ResponseEntity<String> signUp(@RequestBody @Valid UserJoinDTO dto) {
         //ResponseEntity<String>: 응답으로 문자열 메시지를 보내고, 상태 코드도 포함 가능

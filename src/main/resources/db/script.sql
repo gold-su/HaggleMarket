@@ -9,20 +9,20 @@ use hagglemarket;
 use hagglemarket;
 create table user
 (
-    userNo      int auto_increment
+    user_no      int auto_increment
         primary key,
-    userid      char(20)  not null,
-    userName    varchar(20)  not null,
-    passWord    varchar(255) not null,
-    phoneNumber char(11)     not null,
-    nickName    varchar(15)  not null,
+    user_id      varchar(20)  not null,
+    user_name    varchar(10)  not null,
+    password    varchar(255) not null,
+    phone_number varchar(11)     not null,
+    nick_name    varchar(15)  not null,
     address     varchar(30)  not null,
     email       varchar(50)  not null,
-    imageURL    text         null,
-    created     datetime     null,
+    image_url    text         null,
+    created_at     datetime     null,
     status      varchar(20)  null,
     rating      decimal      null,
-    roadRating  decimal      null
+    road_rating  decimal      null
 );
 #밑부터 수정해야함
 

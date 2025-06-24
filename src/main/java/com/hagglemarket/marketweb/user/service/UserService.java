@@ -2,7 +2,6 @@ package com.hagglemarket.marketweb.user.service;
 
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.entity.User;
-import com.hagglemarket.marketweb.user.dao.UserDao;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +51,7 @@ public class UserService {
         User user = User.builder()
                 .userId(dto.getUserId())
                 .password(encodedPassword)
+                .userName(dto.getUserName())
                 .email(dto.getEmail())
                 .phoneNumber(dto.getPhoneNumber())
                 .nickName(dto.getNickName())

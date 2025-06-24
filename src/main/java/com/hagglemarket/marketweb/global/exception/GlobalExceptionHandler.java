@@ -2,10 +2,13 @@ package com.hagglemarket.marketweb.global.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice //@ControllerAdvice + @ResponseBody = @RestControllerAdvice / 모든 @RestController 에서 발생한 예외를 가로채서 처리할 수 있게 해줌
 public class GlobalExceptionHandler {
@@ -25,5 +28,25 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    //@Valid 검증 실패 시 (DTO 유효성 검사 실패 시)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorMapResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex){
+        Map<String, String> errorMap = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        error -> error.getField(),
+                        error -> error.getDefaultMessage(),
+                        (existing, replacement) -> existing //중복 필드는 첫 번째 값 유지
+                        )
+                );
+        ErrorMapResponse errorMapResponse = new ErrorMapResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "validation error",
+                errorMap,
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.badRequest().body(errorMapResponse);
     }
 }
