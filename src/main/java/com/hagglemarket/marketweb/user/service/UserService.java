@@ -62,22 +62,6 @@ public class UserService {
     }
 
 
-
-//    //로그인 확인
-//    public UserVO loginConfirm(UserVO userVO) {
-//        System.out.println("로그인 확인중");
-//
-//        UserVO loginedUserVo = userDao.selectUser(userVO);
-//
-//        if (loginedUserVo == null) {
-//            System.out.println("로그인 실패!!");
-//        } else {
-//            System.out.println("로그인 성공!!");
-//        }
-//
-//        return loginedUserVo;
-//    }
-
     //로그인 로직
     public User login(String userId, String password){
         System.out.println("[UserService] d");
