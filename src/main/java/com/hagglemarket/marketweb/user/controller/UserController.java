@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
 @RequestMapping("/api/users") //모든 API는 /api/users로 시작
-public class UserApiController {
+public class UserController {
     //html할당
     private final UserService userService;
     private final JwtUtil jwtUtil;
