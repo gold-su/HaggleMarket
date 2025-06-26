@@ -1,51 +1,42 @@
 package com.hagglemarket.marketweb.user.controller;
 
+import com.hagglemarket.marketweb.user.dto.LoginRequestDTO;
+import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.service.UserService;
-import jakarta.servlet.http.HttpSession;
+import com.hagglemarket.marketweb.user.util.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@RestController //@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
+@RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
 @RequestMapping("/api/users") //모든 API는 /api/users로 시작
 public class UserController {
+    //html할당
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     //비즈니스 로직을 담당할 UserService 주입
     //회원가입 기능 실제로 수행
-    private final UserService userService;
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        System.out.println("login");
 
-//    @Autowired
-//    private UserService userService;
-//
-//    @GetMapping("/login")
-//    public String login() {
-//        System.out.println("로그인페이지 이동");
-//
-//        return "user/login";
-//    }
-//
-//    @PostMapping("/login")
-//    public String login(UserVO userVO, HttpSession session) {
-//        System.out.println("로그인 시도 성공");
-//
-//        String nextPage = "user/success";
-//        UserVO loginedUserVo = userService.loginConfirm(userVO);
-//
-//        if (loginedUserVo != null) {
-//            session.setAttribute("loginedUser", loginedUserVo);
-//            session.setMaxInactiveInterval(30 * 60);
-//        }else {
-//            nextPage = "user/fail";
-//        }
-//
-//        return nextPage;
-//    }
+        User user = userService.login(loginRequestDTO.getUserId(), loginRequestDTO.getPassword());
+
+        if(user == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = jwtUtil.generateToken(user.getUserId());
+        LoginResponseDTO response = new LoginResponseDTO(token, user.getUserId());
+
+        return ResponseEntity.ok(response);
+    }
 
 
 

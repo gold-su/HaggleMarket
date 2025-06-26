@@ -3,6 +3,8 @@ package com.hagglemarket.marketweb.user.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,34 +12,31 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 //스프링 설정 클래스라는 의미
 @Configuration
 //spring security 설정을 위한 구성 클래스
 public class SecurityConfig {
 
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/login", "/user/**", "/css/**").permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                .csrf(csrf -> csrf.disable()) // REST API 형태거나 csrf 문제시 꺼도 됨
-//                .formLogin().disable();  // 시큐리티 기본 로그인 기능 비활성화
-//
-//        return http.build();
-//    }
-
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    //로그인 필터처리하는 곳
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) //csrf 보안 기능 비활성화. rest api는 꺼도 무방함
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signup", "/api/users/login").permitAll() //특정 경로 로그인 없이 접근 허용
-                        .anyRequest().authenticated() // 그 외의 모든 요청은 인증 필요 (로그인 or 토큰)
-                );
-        return http.build(); //설정을 SecurityFiterChain으로 빌드하여 반환
+                        .requestMatchers("/users/login").permitAll()
+                        //api를 허용함
+                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/register").permitAll()
+                        //css등 파일들을 허용함
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin().disable();
+        return http.build();
     }
 
     @Bean
