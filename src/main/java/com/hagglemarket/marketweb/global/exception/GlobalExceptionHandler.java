@@ -15,15 +15,23 @@ public class GlobalExceptionHandler {
 
     // 이 메서드는 IllegalArgumentException이 발생했을 때 호출됨
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e){
-//        //응답 바디에는 예외 메시지 넣음 (e.getMessage() → "이미 존재하는 아이디입니다.")
-//        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex){
 
-        //ErrorResponse 클래스
+        String message = ex.getMessage();
+        Map<String, String> errorMap;
+
+        // 예: "userId:이미 존재하는 아이디입니다."
+        if (message.contains(":")) {
+            String[] parts = message.split(":", 2);
+            errorMap = Map.of(parts[0], parts[1]);
+        } else {
+            errorMap = Map.of("global", message);
+        }
+
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(), //400
                 "Bad Request",                  //에러 설명
-                e.getMessage(),                 //예외 메시지
+                errorMap,                       //예외 메시지
                 LocalDateTime.now()             //현재 시간
         );
 
@@ -32,7 +40,7 @@ public class GlobalExceptionHandler {
 
     //@Valid 검증 실패 시 (DTO 유효성 검사 실패 시)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorMapResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex){
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex){
         Map<String, String> errorMap = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         error -> error.getField(),
@@ -40,7 +48,7 @@ public class GlobalExceptionHandler {
                         (existing, replacement) -> existing //중복 필드는 첫 번째 값 유지
                         )
                 );
-        ErrorMapResponse errorMapResponse = new ErrorMapResponse(
+        ErrorResponse errorMapResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "validation error",
                 errorMap,
