@@ -79,14 +79,14 @@ public class UserService {
 
         //유저의 비밀번호가 일치하지않으면 오류
         //현재 암호화가 구현X 그렇기 때문에 추후에 실행예정
-        /*if(!passwordEncoder.matches(password, user.getPassword())){
-            throw new RuntimeException("비밀번호가 일치하지 않습니다");
-        }*/
-
-        //비밀번호를 비교하여처리
-        if (!password.equals(user.getPassword())) {
+        if(!passwordEncoder.matches(password, user.getPassword())){
             throw new RuntimeException("비밀번호가 일치하지 않습니다");
         }
+
+        //비밀번호를 비교하여처리
+//        if (!password.equals(user.getPassword())) {
+//            throw new RuntimeException("비밀번호가 일치하지 않습니다");
+//        }
 
         //예외처리가 안되었으면 유저정보를 반환
         return user;
