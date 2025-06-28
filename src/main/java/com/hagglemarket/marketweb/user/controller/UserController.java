@@ -20,8 +20,7 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    //비즈니스 로직을 담당할 UserService 주입
-    //회원가입 기능 실제로 수행
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         System.out.println("login");
@@ -33,14 +32,15 @@ public class UserController {
         }
 
         String token = jwtUtil.generateToken(user.getUserId());
-        LoginResponseDTO response = new LoginResponseDTO(token, user.getUserId());
+        LoginResponseDTO response = new LoginResponseDTO(user.getUserId(), token);
 
         return ResponseEntity.ok(response);
     }
 
 
 
-
+    //비즈니스 로직을 담당할 UserService 주입
+    //회원가입 기능 실제로 수행
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
     public ResponseEntity<String> signUp(@RequestBody @Valid UserJoinDTO dto) {
         //ResponseEntity<String>: 응답으로 문자열 메시지를 보내고, 상태 코드도 포함 가능
