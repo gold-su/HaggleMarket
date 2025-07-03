@@ -1,5 +1,6 @@
 package com.hagglemarket.marketweb.user.util;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -32,5 +33,15 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    //JWT에서 userId 추출
+    public String extractUserId(String token) {
+        Claims claims = Jwts.parser() //JWT 파서를 생성 "암호화된 봉투를 열 준비"
+                .setSigningKey(SECRET_KEY) //JWT를 암호화할 때 사용했던 비밀키를 지정 "진짜 키인지 아닌지 확인할 때 필요한 열쇠"
+                .parseClaimsJws(token) //JWT 토큰을 파싱해서 서명 검증까리 처리 "봉투가 손상되거나 위조되면 열리지 않음"
+                .getBody(); //토크읜 payload(내용)을 꺼냄 '로그인 시에 넣어둔 정보들이 들어있음 (userId, 만료시간, roles 등)
+
+        return claims.getSubject(); //JWT의 subject 값을 꺼내 반환 'subject는 로그인할 때 서버가 토큰에 넣어둔 사용자 식별자(userId)  임
     }
 }

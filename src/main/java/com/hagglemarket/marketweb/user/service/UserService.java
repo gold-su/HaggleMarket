@@ -91,4 +91,10 @@ public class UserService {
         //예외처리가 안되었으면 유저정보를 반환
         return user;
     }
+
+    //DB에서 userId로 사용자 조회하는 메서드
+    public User findByUserId(String userId){
+        return userRepository.findByUserId(userId) //DB에서 userId로 사용자 조회
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다.")); //Optional에 값이 있으면 -> 그 값을 반환 / 값이 없으면 RuntimeExceptopn 발생 '예외 메시지'
+    }
 }

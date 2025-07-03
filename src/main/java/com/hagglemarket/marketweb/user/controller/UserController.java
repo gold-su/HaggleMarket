@@ -2,6 +2,7 @@ package com.hagglemarket.marketweb.user.controller;
 
 import com.hagglemarket.marketweb.user.dto.LoginRequestDTO;
 import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
+import com.hagglemarket.marketweb.user.dto.UserInfoDTO;
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.service.UserService;
@@ -32,8 +33,13 @@ public class UserController {
         }
 
         String token = jwtUtil.generateToken(user.getUserId());
-        LoginResponseDTO response = new LoginResponseDTO(user.getUserId(), token);
+        LoginResponseDTO response = new LoginResponseDTO(
+                user.getUserId(),
+                token,
+                user.getNickName()
+        );
 
+        System.out.println("login response: " + response); //로그인 응답 확인용
         return ResponseEntity.ok(response);
     }
 
@@ -55,4 +61,36 @@ public class UserController {
         return ResponseEntity.ok("회원가입 성공");
     }
 
+    //api/users/me
+    //현재 로그인한 사용자의 정보 조회
+    //리턴 타입: ResponseEntity<UserInfoDTO>
+    //클라이언트에게 HTTP 상태 코드 + 데이터(Json)를 함께 반환
+    //파라미터: @RequestHeader("Authorization")
+    //클라이언트가 보내는 JWT 토큰을 헤더에서 꺼내옴
+    //예) Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoDTO> getMyInfo(
+            @RequestHeader("Authorization") String token) {
+
+        // JWT 토큰에서 userId 추출
+        //jwtUtil.extractUserId()를 통해 JWT 디코딩해서 사용자 ID 꺼냄
+        String userId = jwtUtil.extractUserId(token.replace("Bearer","")); //"Bearer " 접두어를 제거 → 실제 토큰만 남김
+
+        //DB에서 해당 userId를 가진 사용자 정보 조회, 없으면 예외 던지거나 오류 처리도 가능
+        User user = userService.findByUserId(userId);
+
+        //User 엔티티 -> UserInfoDTO 변환
+        UserInfoDTO dto = new UserInfoDTO(
+                user.getUserId(),
+                user.getUserName(),
+                user.getNickName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getAddress(),
+                user.getImageURL()
+        );
+
+        //클라이언트에 DTO 반환
+        return ResponseEntity.ok(dto);
+    }
 }
