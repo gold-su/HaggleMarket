@@ -8,4 +8,5 @@ import lombok.Data;
 public class LoginResponseDTO {
     private String userId;
     private String token;
+    private String nickname; //닉네임 표시위한 반환
 }
