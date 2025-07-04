@@ -1,9 +1,6 @@
 package com.hagglemarket.marketweb.user.controller;
 
-import com.hagglemarket.marketweb.user.dto.LoginRequestDTO;
-import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
-import com.hagglemarket.marketweb.user.dto.UserInfoDTO;
-import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
+import com.hagglemarket.marketweb.user.dto.*;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.service.UserService;
 import com.hagglemarket.marketweb.user.util.JwtUtil;
@@ -93,4 +90,35 @@ public class UserController {
         //클라이언트에 DTO 반환
         return ResponseEntity.ok(dto);
     }
+
+    @PutMapping("/me")
+    public ResponseEntity<String> updateUserInfo(
+            @RequestHeader("Authorization") String token,
+            @RequestBody UserUpdateDTO updateDTO) {
+
+        //JWT에서 userId 추출
+        String userId = jwtUtil.extractUserId(token.replace("Bearer ",""));
+
+        //사용자 정보 수정
+        userService.updateUserInfo(userId, updateDTO);
+
+        //성공 메시지 반환
+        return ResponseEntity.ok("정보가 성공적으로 수정되었습니다.");
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<String> changePassword(
+            @RequestHeader("Authorization") String token,
+            @RequestBody PasswordChangeDTO dto) {
+
+        //JWT에서 userId 추출
+        String userId = jwtUtil.extractUserId(token.replace("Bearer ","").trim());
+
+        //비밀번호 변경
+        userService.changePassword(userId, dto.getCurrentPassword(), dto.getNewPassword());
+
+        return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+
 }

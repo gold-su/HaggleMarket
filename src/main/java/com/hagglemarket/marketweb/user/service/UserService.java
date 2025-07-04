@@ -1,6 +1,7 @@
 package com.hagglemarket.marketweb.user.service;
 
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
+import com.hagglemarket.marketweb.user.dto.UserUpdateDTO;
 import com.hagglemarket.marketweb.user.entity.User;
 
 import com.hagglemarket.marketweb.user.repository.UserRepository;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -96,5 +98,33 @@ public class UserService {
     public User findByUserId(String userId){
         return userRepository.findByUserId(userId) //DB에서 userId로 사용자 조회
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다.")); //Optional에 값이 있으면 -> 그 값을 반환 / 값이 없으면 RuntimeExceptopn 발생 '예외 메시지'
+    }
+
+    @Transactional //변화 감지 / 자동 세이브
+    public void updateUserInfo(String userId, UserUpdateDTO dto) {
+        //DB에서 사용자 조회
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다!"));
+
+        //사용자 정보 수정
+        user.setEmail(dto.getEmail());
+        user.setNickName(dto.getNickName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setAddress(dto.getAddress());
+        user.setImageURL(dto.getImageURL());
+    }
+
+    @Transactional //변화 감지 / 자동 세이브
+    public void changePassword(String userId, String currentPassword, String newPassword) {
+        // 사용자 조회
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다!"));
+        // 현재 비밀번호 확인
+        if(!passwordEncoder.matches(currentPassword, user.getPassword())){
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 새 비밀번호 암호화 후 저장
+        user.setPassword(passwordEncoder.encode(newPassword));
     }
 }
