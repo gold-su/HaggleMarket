@@ -1,25 +1,23 @@
-package com.hagglemarket.marketweb.user.security;
+package com.hagglemarket.marketweb.security;
 
+import com.hagglemarket.marketweb.user.service.MarketUserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 //스프링 설정 클래스라는 의미
 @Configuration
+@RequiredArgsConstructor
 //spring security 설정을 위한 구성 클래스
 public class SecurityConfig {
-
+    private final MarketUserDetailsService marketUserDetailsService;
     @Bean
     //로그인 필터처리하는 곳
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
@@ -40,15 +38,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    //테스트용 유저를 메모리 안에 임시로 등록하는 설정
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-        UserDetails user = User.builder()
-                .username("admin")
-                .password(encoder.encode("1234"))
-                .roles("USER") //역할(권한)은 USER
-                .build();
-
-        return new InMemoryUserDetailsManager(user);
+    public UserDetailsService userDetailsService() {
+        return marketUserDetailsService;  // DB에서 사용자 조회하는 서비스 반환
     }
 
     @Bean

@@ -1,5 +1,6 @@
-package com.hagglemarket.marketweb.user.util;
+package com.hagglemarket.marketweb.util;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -16,11 +17,11 @@ public class JwtUtil {
     // SecretKey 생성
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
 
-    public String generateToken(String username) {
+    public String generateToken(String userid) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userid)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000*60*30))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // Key 타입 사용
                 .compact();
     }
@@ -32,5 +33,22 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public String validateAndExtractUserId(String token){
+        if(token.startsWith("Bearer ")){
+            token = token.substring(7);
+        }
+
+        try{
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject();
+        }catch (Exception e){
+            throw new RuntimeException("유효하지 않은 토큰입니다");
+        }
     }
 }

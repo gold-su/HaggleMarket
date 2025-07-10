@@ -5,12 +5,14 @@ import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.service.UserService;
-import com.hagglemarket.marketweb.user.util.JwtUtil;
+import com.hagglemarket.marketweb.util.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
@@ -38,9 +40,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-
-
-
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
     public ResponseEntity<String> signUp(@RequestBody @Valid UserJoinDTO dto) {
         //ResponseEntity<String>: 응답으로 문자열 메시지를 보내고, 상태 코드도 포함 가능
@@ -55,4 +54,29 @@ public class UserController {
         return ResponseEntity.ok("회원가입 성공");
     }
 
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<String> withdrawUser(@PathVariable String userId,@RequestHeader("Authorization") String token) {
+        String extractedUserId = jwtUtil.validateAndExtractUserId(token);
+
+        System.out.println("요청 userId: " + userId);
+        System.out.println("토큰에서 추출된 userId: " + extractedUserId);
+
+        if(!userId.equals(extractedUserId)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인만 탈퇴할수 있습니다.");
+        }
+
+        userService.withdraw(userId);
+        return ResponseEntity.ok("회원 탈퇴 처리 완료");
+    }
+
+    @GetMapping("/nickname")
+    public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String token) {
+        String userId = jwtUtil.validateAndExtractUserId(token);
+
+        //유저의 아이디를 객체에 담음
+        User user = userService.findByUserId(userId);
+        //해당객체를 사용하여 닉네임을 찾아옴
+        Map<String,String> res = Map.of("nickName",user.getNickName());
+        return ResponseEntity.ok(res);
+    }
 }
