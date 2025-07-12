@@ -7,6 +7,7 @@ import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -126,5 +127,20 @@ public class UserService {
 
         // 새 비밀번호 암호화 후 저장
         user.setPassword(passwordEncoder.encode(newPassword));
+    }
+
+
+    //비밀번호 확인 로직
+    public boolean checkPassword(String userId, String password) {
+        //UserId로 DB에서 사용자 정보 조회
+        Optional<User> optionalUser = userRepository.findByUserId(userId);
+        if(optionalUser.isEmpty()){
+            throw new UsernameNotFoundException("유저를 찾을 수 없습니다.");
+        }
+
+        User user = optionalUser.get();
+
+        //입력된 비밀번호와 DB의 암호화된 비밀번호 비교
+        return passwordEncoder.matches(password, user.getPassword());
     }
 }

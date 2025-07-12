@@ -17,7 +17,8 @@ public class config {
                 registry.addMapping("/api/**") // 프론트에서 접근할 API 경로
                         .allowedOrigins("http://localhost:3000") // React 개발 서버 주소
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowCredentials(true); // 인증 정보 포함 허용 (필요한 경우)
+                        .allowCredentials(true) // 인증 정보 포함 허용 (필요한 경우)
+                        .allowedHeaders("*");
             }
         };
     }
