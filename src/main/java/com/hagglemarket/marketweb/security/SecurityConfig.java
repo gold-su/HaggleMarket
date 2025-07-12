@@ -1,7 +1,7 @@
-package com.hagglemarket.marketweb.user.security;
+package com.hagglemarket.marketweb.security;
 
 import com.hagglemarket.marketweb.user.repository.UserRepository;
-import com.hagglemarket.marketweb.user.service.CustomUserDetailsService;
+import com.hagglemarket.marketweb.user.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 //스프링 설정 클래스라는 의미
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
 
+    private final MarketUserDetailsService marketUserDetailsService;
     @Bean
     //로그인 필터처리하는 곳
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
@@ -37,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/users/login").permitAll()
                         //api를 허용함
-                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/signup").permitAll()
+                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/register").permitAll()
                         //css등 파일들을 허용함
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
@@ -48,23 +50,10 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    //테스트용 유저를 메모리 안에 임시로 등록하는 설정
-//    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-//        UserDetails user = User.builder()
-//                .username("admin")
-//                .password(encoder.encode("1234"))
-//                .roles("USER") //역할(권한)은 USER
-//                .build();
-//
-//        return new InMemoryUserDetailsManager(user);
-//    }
-
     @Bean
     public UserDetailsService userDetailsService() {
         return new CustomUserDetailsService(userRepository); // DB 연동 서비스로 변경
     }
-
 
     @Bean
     //비밀번호를 암호화하거나 암호화된 비밀번호를 비교할 때 사용

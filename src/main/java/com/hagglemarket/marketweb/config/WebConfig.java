@@ -18,9 +18,14 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlersPds(ResourceHandlerRegistry registry) {
         //"http://localhost:8080/uploads/파일명"으로 접근 가능하게 설정
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:uploads/");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry){
+        registry.addResourceHandler("/upload/**").addResourceLocations("file:upload/");
     }
 }

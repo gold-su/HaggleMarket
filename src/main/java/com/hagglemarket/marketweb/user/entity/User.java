@@ -55,7 +55,7 @@ public class User {
     @Enumerated(EnumType.STRING) //<- string 타입으로 설정, .ORDINAL로 하면 (0,1,2)
     @Column(name = "status")
     private UserStatus status;
-    
+
     //위 status의 값을 미리 설정, class를 만들어서 따로 분류하기도 함 (재사용성, 가독성) 근데 적을 것 같아서 같이 선언함
     public enum UserStatus {
         ACTIVE, //활성

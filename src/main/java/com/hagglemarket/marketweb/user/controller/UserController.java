@@ -3,6 +3,7 @@ package com.hagglemarket.marketweb.user.controller;
 import com.hagglemarket.marketweb.user.dto.*;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.service.UserService;
+import com.hagglemarket.marketweb.util.JwtUtil;
 import com.hagglemarket.marketweb.user.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -19,6 +20,8 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 
+import java.util.Map;
+
 @RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
 @RequestMapping("/api/users") //모든 API는 /api/users로 시작
@@ -27,10 +30,11 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-
     //서버 로컬 폴더
     private final String uploadDir = "uploads/";
 
+    //비즈니스 로직을 담당할 UserService 주입
+    //회원가입 기능 실제로 수행
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         System.out.println("login");
@@ -187,5 +191,31 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호 불일치");
         }
 
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<String> withdrawUser(@PathVariable String userId,@RequestHeader("Authorization") String token) {
+        String extractedUserId = jwtUtil.validateAndExtractUserId(token);
+
+        System.out.println("요청 userId: " + userId);
+        System.out.println("토큰에서 추출된 userId: " + extractedUserId);
+
+        if(!userId.equals(extractedUserId)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인만 탈퇴할수 있습니다.");
+        }
+
+        userService.withdraw(userId);
+        return ResponseEntity.ok("회원 탈퇴 처리 완료");
+    }
+
+    @GetMapping("/nickname")
+    public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String token) {
+        String userId = jwtUtil.validateAndExtractUserId(token);
+
+        //유저의 아이디를 객체에 담음
+        User user = userService.findByUserId(userId);
+        //해당객체를 사용하여 닉네임을 찾아옴
+        Map<String,String> res = Map.of("nickName",user.getNickName());
+        return ResponseEntity.ok(res);
     }
 }
