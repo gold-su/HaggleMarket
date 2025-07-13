@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/users/login").permitAll()
                         //api를 허용함
-                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/register").permitAll()
+                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/signup").permitAll()
                         //css등 파일들을 허용함
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()

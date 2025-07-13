@@ -150,10 +150,7 @@ public class UserService {
         //입력된 비밀번호와 DB의 암호화된 비밀번호 비교
         return passwordEncoder.matches(password, user.getPassword());
     }
-    public User findByUserId(String userId) {
-        return userRepository.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자가 없습니다"));
-    }
+
     //탈퇴 로직
     public void withdraw(String userId) {
         User user = userRepository.findByUserId(userId)

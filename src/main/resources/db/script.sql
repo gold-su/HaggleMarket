@@ -176,3 +176,56 @@ create table wishlist
 );
 
 
+create table users
+(
+    user_no      int auto_increment
+        primary key,
+    user_id      varchar(20)  not null,
+    user_name    varchar(20)  not null,
+    password     varchar(255) not null,
+    phone_number varchar(11)  not null,
+    nick_name    varchar(15)  not null,
+    address      varchar(30)  not null,
+    email        varchar(50)  not null,
+    image_url    text         null,
+    created_at   datetime     null,
+    status       varchar(20)  null,
+    rating       decimal      null,
+    road_rating  decimal      null
+);
+
+create table posts
+(
+    post_id    int auto_increment
+        primary key,
+    user_no    int                                not null,
+    title      varchar(50)                        not null,
+    cost       int                                not null,
+    content    text                               not null,
+    hit        int      default 0                 not null,
+    created_at datetime default (now())           null,
+    updated_at datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    status     varchar(20)                        null,
+    constraint posts_users_user_no_fk
+        foreign key (user_no) references users (user_no)
+);
+
+create table post_images
+(
+    image_no   int auto_increment
+        primary key,
+    post_id    int          not null,
+    image_url  varchar(255) not null,
+    sort_order int          not null,
+    constraint post_images_posts_post_id_fk
+        foreign key (post_id) references posts (post_id)
+);
+
+create table withdrawusers
+(
+    no          int auto_increment
+        primary key,
+    user_id     varchar(20)                        not null,
+    user_email  varchar(50)                        null,
+    withdraw_at datetime default CURRENT_TIMESTAMP not null
+);

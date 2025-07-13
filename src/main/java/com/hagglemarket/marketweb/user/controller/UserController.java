@@ -4,7 +4,6 @@ import com.hagglemarket.marketweb.user.dto.*;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.service.UserService;
 import com.hagglemarket.marketweb.util.JwtUtil;
-import com.hagglemarket.marketweb.user.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
