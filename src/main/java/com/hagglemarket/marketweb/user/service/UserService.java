@@ -1,5 +1,6 @@
 package com.hagglemarket.marketweb.user.service;
 
+import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.dto.UserUpdateDTO;
 import com.hagglemarket.marketweb.user.entity.User;
@@ -70,7 +71,7 @@ public class UserService {
 
     //로그인 로직
     public User login(String userId, String password){
-        System.out.println("[UserService]");
+        "[UserService]");
         //데이터베이스에서 가져온 객체에 유저클래스 형식으로 저장함
         //만약 유저와 같은 값이 없다면 null값이 저장되어 날라옴
         Optional<User> userget = userRepository.findByUserId(userId);
@@ -120,6 +121,8 @@ public class UserService {
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setAddress(dto.getAddress());
         user.setImageURL(dto.getImageURL());
+        // ✅ 수정된 유저 정보 DTO로 리턴
+//        return new LoginResponseDTO(user.getUserId(), user.getNickName(), user.getEmail(), user.getPhoneNumber(), user.getAddress(), user.getImageURL());
     }
 
     @Transactional //변화 감지 / 자동 세이브

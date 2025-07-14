@@ -6,7 +6,8 @@ import com.hagglemarket.marketweb.user.service.UserService;
 import com.hagglemarket.marketweb.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.Map;
 @RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
 @RequestMapping("/api/users") //모든 API는 /api/users로 시작
+@Slf4j //log.info() 사용할 때 필요한 로그 자동 선언
 public class UserController {
     //html할당
     private final UserService userService;
@@ -36,7 +38,7 @@ public class UserController {
     //회원가입 기능 실제로 수행
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
-        System.out.println("login");
+        log.info("login");
 
         User user = userService.login(loginRequestDTO.getUserId(), loginRequestDTO.getPassword());
 
@@ -51,7 +53,7 @@ public class UserController {
                 user.getNickName()
         );
 
-        System.out.println("login response: " + response); //로그인 응답 확인용
+        log.info("login response: " + response); //로그인 응답 확인용
         return ResponseEntity.ok(response);
     }
 
@@ -196,8 +198,8 @@ public class UserController {
     public ResponseEntity<String> withdrawUser(@PathVariable String userId,@RequestHeader("Authorization") String token) {
         String extractedUserId = jwtUtil.validateAndExtractUserId(token);
 
-        System.out.println("요청 userId: " + userId);
-        System.out.println("토큰에서 추출된 userId: " + extractedUserId);
+        log.info("요청 userId: " + userId);
+        log.info("토큰에서 추출된 userId: " + extractedUserId);
 
         if(!userId.equals(extractedUserId)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("본인만 탈퇴할수 있습니다.");
