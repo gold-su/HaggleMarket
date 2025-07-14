@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+# HELP.md, target 디렉토리
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
@@ -32,7 +32,7 @@ build/
 
 ### VS Code ###
 .vscode/
-=======
+
 # Compiled class file
 *.class
 
@@ -57,4 +57,3 @@ build/
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
->>>>>>> f34cec29db11bf19f60d554f20baa131ee082c0c
