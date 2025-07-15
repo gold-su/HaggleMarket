@@ -8,8 +8,10 @@ import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.entity.WithdrawUser;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import com.hagglemarket.marketweb.user.repository.WithdrawUserRepository;
+import com.hagglemarket.marketweb.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.Optional;
 
 @Service //비즈니스 로직 수행하는 클래스 지정
 @RequiredArgsConstructor // final 필드 생성자 자동 생성
+@Slf4j
 public class UserService {
     //final == 생성자에서만 초기화 가능, 불변
     private final UserRepository userRepository; //JPA 인터페이스
@@ -28,6 +31,7 @@ public class UserService {
     //@Autowired
     //private UserDao userDao;
 
+    private final JwtUtil jwtUtil;
 
     //회원가입 처리
     //사용자가 회원가입할 때 보내준 데이터(UserJoinDTO)를 받아서
@@ -71,7 +75,7 @@ public class UserService {
 
     //로그인 로직
     public User login(String userId, String password){
-        "[UserService]");
+        log.info("[UserService]");
         //데이터베이스에서 가져온 객체에 유저클래스 형식으로 저장함
         //만약 유저와 같은 값이 없다면 null값이 저장되어 날라옴
         Optional<User> userget = userRepository.findByUserId(userId);
@@ -110,7 +114,7 @@ public class UserService {
     }
 
     @Transactional //변화 감지 / 자동 세이브
-    public void updateUserInfo(String userId, UserUpdateDTO dto) {
+    public LoginResponseDTO updateUserInfo(String userId, UserUpdateDTO dto) {
         //DB에서 사용자 조회
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다!"));
@@ -121,8 +125,13 @@ public class UserService {
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setAddress(dto.getAddress());
         user.setImageURL(dto.getImageURL());
-        // ✅ 수정된 유저 정보 DTO로 리턴
-//        return new LoginResponseDTO(user.getUserId(), user.getNickName(), user.getEmail(), user.getPhoneNumber(), user.getAddress(), user.getImageURL());
+
+        //  수정 후 새 토큰 발급
+        String newToken = jwtUtil.generateToken(user.getUserId());
+
+        //  새 토큰과 새 닉네임 반환
+        return new LoginResponseDTO(user.getUserId(), newToken, user.getNickName());
+
     }
 
     @Transactional //변화 감지 / 자동 세이브

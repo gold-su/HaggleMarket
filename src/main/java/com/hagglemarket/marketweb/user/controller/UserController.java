@@ -110,25 +110,18 @@ public class UserController {
 
     //수정
     @PutMapping("/update")
-    public ResponseEntity<String> updateUserInfo(
+    public ResponseEntity<LoginResponseDTO> updateUserInfo(
             @RequestHeader("Authorization") String token,
             @RequestBody UserUpdateDTO updateDTO) {
 
         //JWT에서 userId 추출
         String userId = jwtUtil.extractUserId(token.replace("Bearer ",""));
 
-        //사용자 정보 수정
-        userService.updateUserInfo(userId, updateDTO);
+        // DB에서 userId로 사용자를 찾아서 사용자 정보 수정 및 새 토큰 발급
+        LoginResponseDTO response = userService.updateUserInfo(userId, updateDTO);
 
-        //수정 후 새 토큰 발급
-        String newToken = jwtUtil.generateToken(userId);
-        User user = userService.findByUserId(userId);
-        LoginResponseDTO response = new LoginResponseDTO(
-                user.getUserId(), newToken, user.getNickName()
-        );
-
-        //성공 메시지 반환
-        return ResponseEntity.ok("정보가 성공적으로 수정되었습니다.");
+        // JSON 형태로 반환 (토큰 + 닉네임 포함)
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/password")
