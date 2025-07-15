@@ -9,13 +9,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 //스프링 설정 클래스라는 의미
@@ -25,12 +21,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 //spring security 설정을 위한 구성 클래스
 public class SecurityConfig {
 
-    private final UserRepository userRepository;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final MarketUserDetailsService marketUserDetailsService;
     @Bean
-    //로그인 필터처리하는 곳
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors()
                 .and()
@@ -38,27 +32,18 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/users/login").permitAll()
-                        //api를 허용함
                         .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/signup").permitAll()
-                        //css등 파일들을 허용함
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .userDetailsService(userDetailsService()) //DB 연동된 서비스 사용
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin().disable();
         return http.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new CustomUserDetailsService(userRepository); // DB 연동 서비스로 변경
-    }
-
-    @Bean
-    //비밀번호를 암호화하거나 암호화된 비밀번호를 비교할 때 사용
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    } //BCrypt를 가장 많이 사용
+        return new BCryptPasswordEncoder(); //BCryptPasswordEncoder를 가장 많이 사용
+    }
 }
 
