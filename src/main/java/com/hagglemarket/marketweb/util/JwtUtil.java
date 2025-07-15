@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,10 +13,11 @@ import java.util.Date;
 @Component
 public class JwtUtil {
     // 256비트(32바이트) 이상 길이의 비밀키를 문자열로 준비
-    private static final String SECRET_STRING = "your-256-bit-or-longer-secret-key-goes-here";
+    private final SecretKey SECRET_KEY;
 
-    // SecretKey 생성
-    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(String userid) {
         return Jwts.builder()
@@ -27,13 +29,20 @@ public class JwtUtil {
     }
 
     public String validateToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        System.out.println("✅ 검증할 토큰: " + token);
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (Exception e) {
+            System.out.println("❌ validateToken 실패: " + e.getMessage());
+            throw e; // or return null
+        }
     }
+
     //JWT에서 userId 추출
     public String extractUserId(String token) {
         Claims claims = Jwts.parser() //JWT 파서를 생성 "암호화된 봉투를 열 준비"

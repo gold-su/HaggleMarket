@@ -97,8 +97,12 @@ public class UserService {
 //        if (!password.equals(user.getPassword())) {
 //            throw new RuntimeException("비밀번호가 일치하지 않습니다");
 //        }
-
         //예외처리가 안되었으면 유저정보를 반환
+
+        System.out.println("✅ 입력한 비밀번호: [" + password + "]");
+        System.out.println("✅ DB 저장된 비밀번호: [" + user.getPassword() + "]");
+        System.out.println("✅ matches 결과: " + passwordEncoder.matches(password, user.getPassword()));
+
         return user;
     }
 

@@ -21,6 +21,7 @@ public class PostRequestDto {
     @NotBlank(message = "내용은 필수입니다.")
     private String content;
 
-    private List<String> imageUrls = new ArrayList<>();
-    private Post.Poststatus status;
+    private boolean negotiable;
+    private boolean swapping;
+    private boolean deliveryFee;
 }

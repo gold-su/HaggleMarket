@@ -26,8 +26,28 @@ public class Post {
     @Column(name="title",nullable = false,length = 50)
     private String title;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_status",nullable = false)
+    private P_status product_status;
+
+    public enum P_status{
+        LIKE_NEW,
+        USED_CONDITION,
+        ACCEPTABLE,
+        BROKEN
+    }
+
     @Column(name="cost",nullable = false)
     private int cost;
+
+    @Column(name = "negotiable", nullable = false)
+    private boolean negotiable;
+
+    @Column(name = "swapping",nullable = false)
+    private boolean swapping;
+
+    @Column(name = "delivery_fee", nullable = false)
+    private boolean delivery_fee;
 
     @Column(name = "content",nullable = false)
     private String content;

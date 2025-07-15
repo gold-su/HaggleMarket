@@ -8,11 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@EnableWebSecurity
+@EnableMethodSecurity
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
@@ -21,7 +25,7 @@ public class PostController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<PostResponseDto> createPost(@Valid @RequestBody PostRequestDto postRequestDto,
+    public ResponseEntity<PostResponseDto> createPost(@Valid @RequestPart("postRequestDto") PostRequestDto postRequestDto,
                                                       @RequestPart("images") List<MultipartFile> images) {
         PostResponseDto postResponseDto = postService.createPost(postRequestDto, images);
         return ResponseEntity.ok(postResponseDto);

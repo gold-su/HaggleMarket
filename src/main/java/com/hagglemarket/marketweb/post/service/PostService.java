@@ -28,6 +28,9 @@ public class PostService {
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
+                .negotiable(dto.isNegotiable())
+                .swapping(dto.isSwapping())
+                .delivery_fee(dto.isDeliveryFee())
                 .cost(dto.getCost())
                 .status(Post.Poststatus.FOR_SALE)
                 .hit(0)
@@ -51,7 +54,6 @@ public class PostService {
                         .sortOrder(i + 1)
                         .post(post)
                         .build();
-
                 post.getImages().add(postImage);
             }
         }
@@ -63,6 +65,9 @@ public class PostService {
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .cost(saved.getCost())
+                .negotiable(saved.isNegotiable())
+                .swapping(saved.isSwapping())
+                .deliveryFee(saved.isDelivery_fee())
                 .status(saved.getStatus())
                 .hit(saved.getHit())
                 .createdAt(saved.getCreatedAt())

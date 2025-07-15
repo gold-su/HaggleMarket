@@ -13,6 +13,9 @@ public class PostResponseDto {
     private int postId;
     private String title;
     private int cost;
+    private boolean negotiable;
+    private boolean swapping;
+    private boolean deliveryFee;
     private String content;
     private Post.Poststatus status;
     private int hit;
