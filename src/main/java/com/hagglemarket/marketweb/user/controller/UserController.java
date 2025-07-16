@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -79,7 +80,7 @@ public class UserController {
     //현재 로그인한 사용자의 정보 조회
     //리턴 타입: ResponseEntity<UserInfoDTO>
     //클라이언트에게 HTTP 상태 코드 + 데이터(Json)를 함께 반환
-    //파라미터: @RequestHeader("Authorization")
+    //파라미터: @RequestHeader("Authorization")  RequestHeader는 요청에서 헤더에 있는 데이터를 가져올 수 있는 방식 (token)
     //클라이언트가 보내는 JWT 토큰을 헤더에서 꺼내옴
     //예) Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
     @GetMapping("/me")
@@ -138,18 +139,20 @@ public class UserController {
         return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
     }
 
-    //맵핑
-    @PostMapping("/upload")
+    //맵핑                                //consumes는 HTTP 요청의 Content-Type을 검사
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // 컨트롤러 메서드가 multipart/form-data 형식의 요청만 처리하도록 강제 설정
     //클라이언트가 보낸 이미지 파일을 받음
     //@RequestParam("file"): 요청의 form-data에 포함된 "file" 파라미터로 파일 받기
     //MultipartFile: 업로드된 파일 데이터가 들어있는 객체
-    public ResponseEntity<String> uploadProfileImage(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadProfileImage(@RequestPart("file") MultipartFile file) {
         try{
+            //파일 저장 결로 수정
+            String folderName = "profile"; // 회원가입 프로필 이미지 폴더
             //중복 방지를 위해 랜덤한 UUID로 파일 이름 생성
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             //파일 저장 경로 생성
             //uploadDir: 파일을 저장할 폴더 경로 예) "uploads/" 👉 실제 저장 위치는 uploads/랜덤파일명
-            Path path = Paths.get(uploadDir + fileName);
+            Path path = Paths.get(uploadDir + folderName + "/" + fileName);
             //uploads/ 폴더가 없으면 자동 생성
             Files.createDirectories(path.getParent());
             //업로드된 파일 데이터를 바이트 배열로 읽어서 서버에 저장
@@ -157,7 +160,7 @@ public class UserController {
 
             //클라이언트가 나중에 이 파일에 접근할 수 있는 URL 생성
             //React가 회원가입/마이페이지 화면에 이 URL을 넣어주면 됨
-            String fileUrl = "http://localhost:8080/uploads/" + fileName; //반환할 URL
+            String fileUrl = "http://localhost:8080/uploads/" + folderName + "/" + fileName; //반환할 URL
 
             return ResponseEntity.ok(fileUrl); //업로드 성공 시 HTTP 200 OK와 함께 파일 URL 반환
         }catch (IOException e){
