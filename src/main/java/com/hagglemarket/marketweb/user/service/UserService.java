@@ -1,29 +1,37 @@
 package com.hagglemarket.marketweb.user.service;
 
+import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.dto.UserUpdateDTO;
 import com.hagglemarket.marketweb.user.entity.User;
 
+import com.hagglemarket.marketweb.user.entity.WithdrawUser;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
+import com.hagglemarket.marketweb.user.repository.WithdrawUserRepository;
+import com.hagglemarket.marketweb.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service //비즈니스 로직 수행하는 클래스 지정
 @RequiredArgsConstructor // final 필드 생성자 자동 생성
+@Slf4j
 public class UserService {
     //final == 생성자에서만 초기화 가능, 불변
     private final UserRepository userRepository; //JPA 인터페이스
     private final PasswordEncoder passwordEncoder; //스프링 시큐리티 비밀번호 암호화 인터페이스
+    private final WithdrawUserRepository withdrawUserRepository;
+    //@Autowired
+    //private UserDao userDao;
 
-//    @Autowired
-//    private UserDao userDao;
-
+    private final JwtUtil jwtUtil;
 
     //회원가입 처리
     //사용자가 회원가입할 때 보내준 데이터(UserJoinDTO)를 받아서
@@ -67,7 +75,7 @@ public class UserService {
 
     //로그인 로직
     public User login(String userId, String password){
-        System.out.println("[UserService] d");
+        log.info("[UserService]");
         //데이터베이스에서 가져온 객체에 유저클래스 형식으로 저장함
         //만약 유저와 같은 값이 없다면 null값이 저장되어 날라옴
         Optional<User> userget = userRepository.findByUserId(userId);
@@ -80,16 +88,14 @@ public class UserService {
         //받아온 유저값을 객체에 저장
         User user = userget.get();
 
+
+        if(user.getStatus() == User.UserStatus.DELETED){
+            throw new RuntimeException("탈퇴한 회원입니다");
+        }
         //유저의 비밀번호가 일치하지않으면 오류
-        //현재 암호화가 구현X 그렇기 때문에 추후에 실행예정
         if(!passwordEncoder.matches(password, user.getPassword())){
             throw new RuntimeException("비밀번호가 일치하지 않습니다");
         }
-
-        //비밀번호를 비교하여처리
-//        if (!password.equals(user.getPassword())) {
-//            throw new RuntimeException("비밀번호가 일치하지 않습니다");
-//        }
 
         //예외처리가 안되었으면 유저정보를 반환
         return user;
@@ -102,7 +108,7 @@ public class UserService {
     }
 
     @Transactional //변화 감지 / 자동 세이브
-    public void updateUserInfo(String userId, UserUpdateDTO dto) {
+    public LoginResponseDTO updateUserInfo(String userId, UserUpdateDTO dto) {
         //DB에서 사용자 조회
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다!"));
@@ -113,6 +119,13 @@ public class UserService {
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setAddress(dto.getAddress());
         user.setImageURL(dto.getImageURL());
+
+        //  수정 후 새 토큰 발급
+        String newToken = jwtUtil.generateToken(user.getUserId());
+
+        //  새 토큰과 새 닉네임 반환
+        return new LoginResponseDTO(user.getUserId(), newToken, user.getNickName());
+
     }
 
     @Transactional //변화 감지 / 자동 세이브
@@ -142,5 +155,20 @@ public class UserService {
 
         //입력된 비밀번호와 DB의 암호화된 비밀번호 비교
         return passwordEncoder.matches(password, user.getPassword());
+    }
+
+    //탈퇴 로직
+    public void withdraw(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        user.setStatus(User.UserStatus.DELETED);
+        userRepository.save(user);
+
+        WithdrawUser withdrawUser = WithdrawUser.builder()
+                .userId(userId)
+                .userEmail(user.getEmail())
+                .withdrawAt(LocalDateTime.now())
+                .build();
+        withdrawUserRepository.save(withdrawUser);
     }
 }

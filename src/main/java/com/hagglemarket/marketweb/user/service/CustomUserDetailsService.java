@@ -1,5 +1,6 @@
 package com.hagglemarket.marketweb.user.service;
 
+import com.hagglemarket.marketweb.security.CustomUserDetails;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,11 +30,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUserId(userId) //DB에서 userId로 사용자 찾기, 반환 타입: Optional<User>
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다 :"+ userId)); //사용자가 존재하면 → user 반환 / 없으면 → UsernameNotFoundException 발생
 
-        //Spring Security가 이해할 수 있는 UserDetails 객체로 변환
-        return org.springframework.security.core.userdetails.User.builder() //Spring Security 전용 User 객체 생성
-                .username(user.getUserId()) //DB에서 가져온 사용자 아이디 지정
-                .password(user.getPassword()) //DB에 저장된 비밀번호 지정 (반드시 암호화된 상태여야 함)
-                .roles("USER") //사용자 권한 지정 → 이후 Security에서 “이 사용자는 USER 권한이 있음”으로 처리
-                .build(); //UserDetails 객체 완성해서 반환
+//        //Spring Security가 이해할 수 있는 UserDetails 객체로 변환
+//        return org.springframework.security.core.userdetails.User.builder() //Spring Security 전용 User 객체 생성
+//                .username(user.getUserId()) //DB에서 가져온 사용자 아이디 지정
+//                .password(user.getPassword()) //DB에 저장된 비밀번호 지정 (반드시 암호화된 상태여야 함)
+//                .roles("USER") //사용자 권한 지정 → 이후 Security에서 “이 사용자는 USER 권한이 있음”으로 처리
+//                .build(); //UserDetails 객체 완성해서 반환
+        // CustomUserDetails로 감싸서 반환
+        return new CustomUserDetails(user);
     }
 }

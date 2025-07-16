@@ -1,4 +1,4 @@
-package com.hagglemarket.marketweb.user.util;
+package com.hagglemarket.marketweb.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -17,11 +17,11 @@ public class JwtUtil {
     // SecretKey 생성
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
 
-    public String generateToken(String username) {
+    public String generateToken(String userid) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userid)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000*60*30))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // Key 타입 사용
                 .compact();
     }
@@ -34,7 +34,6 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
-
     //JWT에서 userId 추출
     public String extractUserId(String token) {
         Claims claims = Jwts.parser() //JWT 파서를 생성 "암호화된 봉투를 열 준비"
@@ -43,5 +42,22 @@ public class JwtUtil {
                 .getBody(); //토크읜 payload(내용)을 꺼냄 '로그인 시에 넣어둔 정보들이 들어있음 (userId, 만료시간, roles 등)
 
         return claims.getSubject(); //JWT의 subject 값을 꺼내 반환 'subject는 로그인할 때 서버가 토큰에 넣어둔 사용자 식별자(userId)  임
+    }
+
+    public String validateAndExtractUserId(String token){
+        if(token.startsWith("Bearer ")){
+            token = token.substring(7);
+        }
+
+        try{
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject();
+        }catch (Exception e){
+            throw new RuntimeException("유효하지 않은 토큰입니다");
+        }
     }
 }
