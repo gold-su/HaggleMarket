@@ -17,6 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 
+    //uploads 폴더 정적 자원으로 서빙하도록 설정
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         //"http://localhost:8080/uploads/파일명"으로 접근 가능하게 설정
