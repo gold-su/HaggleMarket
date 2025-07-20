@@ -86,70 +86,85 @@ public class UserController {
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
     public ResponseEntity<String> signUp(
             @RequestPart("user") UserJoinDTO dto,
-            @RequestPart("profileImage") MultipartFile profileImage) {
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
+
+
+
+
         try {
 
             log.info("회원가입 요청 : {}", dto);
-            log.info("업로된 이미지 이름 : {}", profileImage.getOriginalFilename());
 
-            //클라이언트가 이미지 파일만 업로드 가능하게끔 설정
-            if (!profileImage.getContentType().startsWith("image/")) {
-                return ResponseEntity.badRequest().body("이미지 파일만 업로드 가능합니다.");
+            if (profileImage != null && !profileImage.isEmpty()) {
+                log.info("업로된 이미지 이름 : {}", profileImage.getOriginalFilename());
+
+                //클라이언트가 이미지 파일만 업로드 가능하게끔 설정
+                if (!profileImage.getContentType().startsWith("image/")) {
+                    return ResponseEntity.badRequest().body("이미지 파일만 업로드 가능합니다.");
+                }
+
+                //이미지 파일 저장 로직
+                String folderName = "profile";
+                //오리지널 파일 이름
+                String originalFilename = profileImage.getOriginalFilename();
+                //뒤 확장자 제거
+                String cleanName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+                //확장자 제거한 파일 이름으로 fileName 선언
+                String fileName = UUID.randomUUID().toString() + "_" + cleanName + ".jpg";
+                //파일의 실제 저장 경로를 만드는 코드
+                Path path = Paths.get(uploadDir, folderName, fileName);
+                //이미지 생성할 디렉토리가 없으면 폴더 자동 생성
+                Files.createDirectories(path.getParent());
+                //원본 이미지 데이터 그대로 바이트 배열로 읽어서 파일로 저장
+                //Files.write(path, profileImage.getBytes());
+
+                // 이미지 데이터를 BufferedImage로 읽기
+                //업로된 파일을 InputStream으로 읽어오기
+                //ImageIO.read()로 이미지를 메모리에 올려서 자바가 처리 가능한 이미지 객체(BufferedImage)로 변환
+                InputStream inputStream = profileImage.getInputStream();
+                BufferedImage bufferedImage = ImageIO.read(inputStream);
+
+                //JPG로 변환하여 저장
+                File outputFile = path.toFile();
+                //업로된 이미지 사이즈 조정
+                int targetWidth = 500; // 원하는 가로 사이즈
+                int targetHeight = (bufferedImage.getHeight() * targetWidth) / bufferedImage.getWidth();
+
+                // 새로운 BufferedImage 생성
+                BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+
+                // 기존 이미지를 새로운 이미지로 스케일링
+                Graphics2D g2d = resizedImage.createGraphics();
+                g2d.drawImage(bufferedImage, 0, 0, targetWidth, targetHeight, null);
+                g2d.dispose();
+
+                //BuffredImage를 무조건 JPG 형식으로 인코딩 후 파일로 저장
+                ImageIO.write(resizedImage, "jpg", outputFile);
+
+                //폴더명과 파일명이 포함한 상태로 이미지 저장
+                //dto.setImageURL("http://localhost:8080/uploads/"+folderName+"/"+fileName);
+                String fileUrl = "/uploads/" + folderName + "/" + fileName;
+                dto.setImageURL(fileUrl); //DTO에 이미지 URL 세팅
+            } else {
+                log.info("이미지 없이 회원가입 요청");
+                dto.setImageURL(null); // 이미지 없으면 URL은 null 처리
             }
-
-            //이미지 파일 저장 로직
-            String folderName = "profile";
-            //오리지널 파일 이름
-            String originalFilename = profileImage.getOriginalFilename();
-            //뒤 확장자 제거
-            String cleanName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
-            //확장자 제거한 파일 이름으로 fileName 선언
-            String fileName = UUID.randomUUID().toString() + "_" + cleanName + ".jpg";
-            //파일의 실제 저장 경로를 만드는 코드
-            Path path = Paths.get(uploadDir, folderName, fileName);
-            //이미지 생성할 디렉토리가 없으면 폴더 자동 생성
-            Files.createDirectories(path.getParent());
-            //원본 이미지 데이터 그대로 바이트 배열로 읽어서 파일로 저장
-//          Files.write(path, profileImage.getBytes());
-
-            // 이미지 데이터를 BufferedImage로 읽기
-            //업로된 파일을 InputStream으로 읽어오기
-            //ImageIO.read()로 이미지를 메모리에 올려서 자바가 처리 가능한 이미지 객체(BufferedImage)로 변환
-            InputStream inputStream = profileImage.getInputStream();
-            BufferedImage bufferedImage = ImageIO.read(inputStream);
-
-            //JPG로 변환하여 저장
-            File outputFile = path.toFile();
-            //업로된 이미지 사이즈 조정
-            int targetWidth = 500; // 원하는 가로 사이즈
-            int targetHeight = (bufferedImage.getHeight() * targetWidth) / bufferedImage.getWidth();
-
-            // 새로운 BufferedImage 생성
-            BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
-
-            // 기존 이미지를 새로운 이미지로 스케일링
-            Graphics2D g2d = resizedImage.createGraphics();
-            g2d.drawImage(bufferedImage, 0, 0, targetWidth, targetHeight, null);
-            g2d.dispose();
-
-            //BuffredImage를 무조건 JPG 형식으로 인코딩 후 파일로 저장
-            ImageIO.write(resizedImage, "jpg", outputFile);
-
-            //폴더명과 파일명이 포함한 상태로 이미지 저장
-            //dto.setImageURL("http://localhost:8080/uploads/"+folderName+"/"+fileName);
-            String fileUrl = "/uploads/" + folderName + "/" + fileName;
-            dto.setImageURL(fileUrl);
-
 
             //userService에 join 메서드 실행
             userService.join(dto);
-
             //회원가입 성공 body로 보내줌. 위에서 오류 발생시 throw로 인해 실행되지 않음
             //.ok는 200번대 성공 HTTP 상태 코드
             return ResponseEntity.ok("회원가입 성공");
-        } catch (IOException | IllegalArgumentException e) {
-            log.error("이미지 처리 중 오류 발생", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 업로드 실패");
+
+        } catch (IOException e) {
+             log.error("이미지 처리 중 IOException 발생", e);
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 업로드 실패");
+        } catch (IllegalArgumentException e) {
+            log.error("회원가입 중 IllegalArgumentException 발생", e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("예상치 못한 예외 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류");
         }
     }
 
