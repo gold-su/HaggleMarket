@@ -82,6 +82,7 @@ public class UserController {
 //        return ResponseEntity.ok("회원가입 성공");
 //    }
 
+
     //비즈니스 로직을 담당할 UserService 주입
     //회원가입 기능 실제로 수행
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결

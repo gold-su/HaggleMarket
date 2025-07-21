@@ -33,11 +33,11 @@ public class GlobalExceptionHandler {
 
     //@Valid 검증 실패 시 (DTO 유효성 검사 실패 시)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex){
-        Map<String, String> errorMap = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(
-                        fieldError -> fieldError.getField(),
-                        fieldError -> fieldError.getDefaultMessage(),
+    public ResponseEntity<Map<String,String>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex){ //MethodArgumentNotValidException 안에는 DTO 검증 실패 정보가 담겨 있음
+        Map<String, String> errorMap = ex.getBindingResult().getFieldErrors().stream() // / 검증 결과 객체 반환 / 각 필드마다 발생한 에러 정보 리스트 반환 / Java Stream 으로 변환
+                .collect(Collectors.toMap( // Stream 데이터를 Map으로 변환
+                        fieldError -> fieldError.getField(), //FieldError 객체에서 필드 이름 가져옴
+                        fieldError -> fieldError.getDefaultMessage(), //FieldError 객체에서 에러 메시지 가져옴
                         (existing, replacement) -> existing //중복 필드는 첫 번째 값 유지
                         )
                 );
