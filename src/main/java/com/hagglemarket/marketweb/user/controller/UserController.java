@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -84,12 +85,9 @@ public class UserController {
     //비즈니스 로직을 담당할 UserService 주입
     //회원가입 기능 실제로 수행
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
-    public ResponseEntity<String> signUp(
+    public ResponseEntity<?> signUp(
             @RequestPart("user") UserJoinDTO dto,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
-
-
-
 
         try {
 
@@ -150,21 +148,21 @@ public class UserController {
                 dto.setImageURL(null); // 이미지 없으면 URL은 null 처리
             }
 
-            //userService에 join 메서드 실행
-            userService.join(dto);
+            //userService에 vaildateAndJoin 메서드 실행 후 오류가 있다면 Map 받아 옴
+            Map<String, String> errors = userService.vaildateAndJoin(dto);
+
+            //오류가 있으면 프론트로 반환
+            if(!errors.isEmpty()){
+                return ResponseEntity.badRequest().body(errors);
+            }
+
             //회원가입 성공 body로 보내줌. 위에서 오류 발생시 throw로 인해 실행되지 않음
             //.ok는 200번대 성공 HTTP 상태 코드
-            return ResponseEntity.ok("회원가입 성공");
+            return ResponseEntity.ok(Map.of("success","회원가입 성공"));
 
-        } catch (IOException e) {
-             log.error("이미지 처리 중 IOException 발생", e);
-             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 업로드 실패");
-        } catch (IllegalArgumentException e) {
-            log.error("회원가입 중 IllegalArgumentException 발생", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             log.error("예상치 못한 예외 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "회원가입 중 서버 오류가 발생했습니다."));
         }
     }
 
