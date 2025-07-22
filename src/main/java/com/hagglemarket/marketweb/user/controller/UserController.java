@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.Errors;
+import org.springframework.validation.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,10 +24,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
@@ -37,6 +39,7 @@ public class UserController {
     //html할당
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final Validator validator;
 
     //서버 로컬 폴더
     private final String uploadDir = "uploads/";
@@ -93,6 +96,19 @@ public class UserController {
         try {
 
             log.info("회원가입 요청 : {}", dto);
+
+            //validator 수동 호출
+            BindingResult bindingResult = new BeanPropertyBindingResult(dto, "user");
+            validator.validate(dto, bindingResult);
+
+            if(bindingResult.hasErrors()){
+                //에러맵으로 변환
+                Map<String, String> errorMap = bindingResult.getFieldErrors().stream()
+                        .collect(Collectors.toMap(
+                                FieldError::getField,
+                                FieldError::getDefaultMessage));
+                return ResponseEntity.badRequest().body(errorMap);
+            }
 
             if (profileImage != null && !profileImage.isEmpty()) {
                 log.info("업로된 이미지 이름 : {}", profileImage.getOriginalFilename());
