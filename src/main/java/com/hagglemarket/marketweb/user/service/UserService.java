@@ -1,5 +1,6 @@
 package com.hagglemarket.marketweb.user.service;
 
+import com.hagglemarket.marketweb.global.exception.DuplicateFieldException;
 import com.hagglemarket.marketweb.user.dto.LoginResponseDTO;
 import com.hagglemarket.marketweb.user.dto.UserJoinDTO;
 import com.hagglemarket.marketweb.user.dto.UserUpdateDTO;
@@ -38,82 +39,89 @@ public class UserService {
 //    //회원가입 처리
 //    //사용자가 회원가입할 때 보내준 데이터(UserJoinDTO)를 받아서
 //    //유효성 검증, DB에 저장
-//    public void join(UserJoinDTO dto) {
-//        if (userRepository.existsByUserId(dto.getUserId())) {
-//            throw new IllegalArgumentException("userId:이미 존재하는 아이디입니다.");
-//        }
-//
-//        if (userRepository.existsByEmail(dto.getEmail())) {
-//            throw new IllegalArgumentException("email:이미 존재하는 이메일입니다.");
-//        }
-//
-//        if (userRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
-//            throw new IllegalArgumentException("phoneNumber:이미 존재하는 전화번호입니다.");
-//        }
-//
-//        if (userRepository.existsByNickName(dto.getNickName())) {
-//            throw new IllegalArgumentException("nickName:이미 존재하는 닉네임입니다.");
-//        }
-//
-//        //비밀번호 평문을 암호화
-//        String encodedPassword = passwordEncoder.encode(dto.getPassword());
-//
-//        //save 하기 편하게 회원가입 데이터를 user 엔티티로 변환
-//        User user = User.builder()
-//                .userId(dto.getUserId())
-//                .password(encodedPassword)
-//                .userName(dto.getUserName())
-//                .email(dto.getEmail())
-//                .phoneNumber(dto.getPhoneNumber())
-//                .nickName(dto.getNickName())
-//                .address(dto.getAddress())
-//                .imageURL(dto.getImageURL())
-//                .build();
-//
-//        //user 객체를 DB에 저장 (Insert 쿼리 발생)
-//        userRepository.save(user);
-//    }
-
-    //IllegalArgumentException 오류 Map 형태로 반환
-    public Map<String, String> vaildateAndJoin(UserJoinDTO dto){
+    public void join(UserJoinDTO dto) {
         Map<String, String> errors = new HashMap<>();
 
-        //DB 중복 체크
-        //레포지토리에 있는 existsByUserId 사용
-        if(userRepository.existsByUserId(dto.getUserId())){
+        if (userRepository.existsByUserId(dto.getUserId())) {
             errors.put("userId","이미 존재하는 아이디입니다.");
         }
-        if(userRepository.existsByEmail(dto.getEmail())){
-            errors.put("email","이미 존재하는 이메일입니다.");
+
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            errors.put("email","이미 존재하는 이메일입니다..");
         }
-        if(userRepository.existsByPhoneNumber(dto.getPhoneNumber())){
-            errors.put("userId","이미 존재하는 전화번호입니다.");
+
+        if (userRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
+            errors.put("phoneNumber","이미 존재하는 전화번호입니다..");
         }
-        if(userRepository.existsByNickName(dto.getNickName())){
+
+        if (userRepository.existsByNickName(dto.getNickName())) {
             errors.put("nickName","이미 존재하는 닉네임입니다.");
         }
 
-        //오류가 없으면 저장
-        if(errors.isEmpty()) {
-            //비밀번호 평문을 암호화
-            String encodedPassword = passwordEncoder.encode(dto.getPassword());
-            //save 하기 편하게 회원가입 데이터를 user 엔티티로 변환
-            User user = User.builder()
-                    .userId(dto.getUserId())
-                    .password(encodedPassword)
-                    .userName(dto.getUserName())
-                    .email(dto.getEmail())
-                    .phoneNumber(dto.getPhoneNumber())
-                    .nickName(dto.getNickName())
-                    .address(dto.getAddress())
-                    .imageURL(dto.getImageURL())
-                    .build();
-            //user 객체를 DB에 저장 (Insert 쿼리 발생)
-            userRepository.save(user);
+        if(!errors.isEmpty()){
+            throw new DuplicateFieldException(errors);
         }
 
-        return errors; //오류 Map 반환
+        //비밀번호 평문을 암호화
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
+
+        //save 하기 편하게 회원가입 데이터를 user 엔티티로 변환
+        // Entity로 변환 후 저장
+        User user = User.builder()
+                .userId(dto.getUserId())
+                .password(dto.getPassword())
+                .userName(dto.getUserName())
+                .nickName(dto.getNickName())
+                .phoneNumber(dto.getPhoneNumber())
+                .email(dto.getEmail())
+                .address(dto.getAddress())
+                .imageURL(dto.getImageURL())
+                .build();
+
+        //user 객체를 DB에 저장 (Insert 쿼리 발생)
+        userRepository.save(user);
     }
+//
+//    //IllegalArgumentException 오류 Map 형태로 반환
+//    public Map<String, String> vaildateAndJoin(UserJoinDTO dto){
+//        Map<String, String> errors = new HashMap<>();
+//
+//        //DB 중복 체크
+//        //레포지토리에 있는 existsByUserId 사용
+//        if(userRepository.existsByUserId(dto.getUserId())){
+//            errors.put("userId","이미 존재하는 아이디입니다.");
+//        }
+//        if(userRepository.existsByEmail(dto.getEmail())){
+//            errors.put("email","이미 존재하는 이메일입니다.");
+//        }
+//        if(userRepository.existsByPhoneNumber(dto.getPhoneNumber())){
+//            errors.put("userId","이미 존재하는 전화번호입니다.");
+//        }
+//        if(userRepository.existsByNickName(dto.getNickName())){
+//            errors.put("nickName","이미 존재하는 닉네임입니다.");
+//        }
+//
+//        //오류가 없으면 저장
+//        if(errors.isEmpty()) {
+//            //비밀번호 평문을 암호화
+//            String encodedPassword = passwordEncoder.encode(dto.getPassword());
+//            //save 하기 편하게 회원가입 데이터를 user 엔티티로 변환
+//            User user = User.builder()
+//                    .userId(dto.getUserId())
+//                    .password(encodedPassword)
+//                    .userName(dto.getUserName())
+//                    .email(dto.getEmail())
+//                    .phoneNumber(dto.getPhoneNumber())
+//                    .nickName(dto.getNickName())
+//                    .address(dto.getAddress())
+//                    .imageURL(dto.getImageURL())
+//                    .build();
+//            //user 객체를 DB에 저장 (Insert 쿼리 발생)
+//            userRepository.save(user);
+//        }
+//
+//        return errors; //오류 Map 반환
+//    }
 
 
     //로그인 로직

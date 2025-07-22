@@ -39,7 +39,6 @@ public class UserController {
     //html할당
     private final UserService userService;
     private final JwtUtil jwtUtil;
-    private final Validator validator;
 
     //서버 로컬 폴더
     private final String uploadDir = "uploads/";
@@ -90,32 +89,31 @@ public class UserController {
     //회원가입 기능 실제로 수행
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
     public ResponseEntity<?> signUp(
-            @RequestPart("user") UserJoinDTO dto,
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
+            @Valid @RequestPart("user") UserJoinDTO dto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) throws IOException {
 
-        try {
 
             log.info("회원가입 요청 : {}", dto);
-
-            //validator 수동 호출
-            BindingResult bindingResult = new BeanPropertyBindingResult(dto, "user");
-            validator.validate(dto, bindingResult);
-
-            if(bindingResult.hasErrors()){
-                //에러맵으로 변환
-                Map<String, String> errorMap = bindingResult.getFieldErrors().stream()
-                        .collect(Collectors.toMap(
-                                FieldError::getField,
-                                FieldError::getDefaultMessage));
-                return ResponseEntity.badRequest().body(errorMap);
-            }
+//            spring 기반 오류 검출로 코드 수정
+//            //validator 수동 호출
+//            BindingResult bindingResult = new BeanPropertyBindingResult(dto, "user");
+//            validator.validate(dto, bindingResult);
+//
+//            if(bindingResult.hasErrors()){
+//                //에러맵으로 변환
+//                Map<String, String> errorMap = bindingResult.getFieldErrors().stream()
+//                        .collect(Collectors.toMap(
+//                                FieldError::getField,
+//                                FieldError::getDefaultMessage));
+//                return ResponseEntity.badRequest().body(errorMap);
+//            }
 
             if (profileImage != null && !profileImage.isEmpty()) {
                 log.info("업로된 이미지 이름 : {}", profileImage.getOriginalFilename());
 
                 //클라이언트가 이미지 파일만 업로드 가능하게끔 설정
                 if (!profileImage.getContentType().startsWith("image/")) {
-                    return ResponseEntity.badRequest().body("이미지 파일만 업로드 가능합니다.");
+                    throw new IllegalArgumentException("global:이미지 파일만 업로드 가능합니다.");
                 }
 
                 //이미지 파일 저장 로직
@@ -165,22 +163,19 @@ public class UserController {
                 dto.setImageURL(null); // 이미지 없으면 URL은 null 처리
             }
 
-            //userService에 vaildateAndJoin 메서드 실행 후 오류가 있다면 Map 받아 옴
-            Map<String, String> errors = userService.vaildateAndJoin(dto);
+//            //userService에 vaildateAndJoin 메서드 실행 후 오류가 있다면 Map 받아 옴
+//            Map<String, String> errors = userService.vaildateAndJoin(dto);
 
-            //오류가 있으면 프론트로 반환
-            if(!errors.isEmpty()){
-                return ResponseEntity.badRequest().body(errors);
-            }
+//            //오류가 있으면 프론트로 반환
+//            if(!errors.isEmpty()){
+//                return ResponseEntity.badRequest().body(errors);
+//            }
 
+            userService.join(dto);
             //회원가입 성공 body로 보내줌. 위에서 오류 발생시 throw로 인해 실행되지 않음
             //.ok는 200번대 성공 HTTP 상태 코드
             return ResponseEntity.ok(Map.of("success","회원가입 성공"));
 
-        } catch (Exception e) {
-            log.error("예상치 못한 예외 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "회원가입 중 서버 오류가 발생했습니다."));
-        }
     }
 
     //api/users/me
