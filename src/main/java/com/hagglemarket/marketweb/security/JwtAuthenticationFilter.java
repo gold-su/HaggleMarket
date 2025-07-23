@@ -37,9 +37,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwtToken = authHeader.substring(7);
+
+            System.out.println("토큰 확인: " + jwtToken);
+
             try {
                 userid = jwtUtil.validateToken(jwtToken);
+
+                System.out.println("JWT에서 꺼낸 유저명: " + userid);
             } catch (Exception e) {
+                System.out.println("JWT 검증 실패: " + e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
@@ -49,6 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (userid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userid);
 
+            System.out.println("UserDetails에서 불러온 사용자: " + userDetails.getUsername());
+
             // 토큰 유효성 재검사 (여기서는 단순히 username 비교만 예시)
             if (userid.equals(userDetails.getUsername())) {
                 UsernamePasswordAuthenticationToken authToken =
@@ -57,6 +65,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                System.out.println("SecurityContext에 인증 정보 저장 완료");
             }
         }
 

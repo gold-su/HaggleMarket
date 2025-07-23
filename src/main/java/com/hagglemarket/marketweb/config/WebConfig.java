@@ -21,7 +21,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         //"http://localhost:8080/uploads/파일명"으로 접근 가능하게 설정
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");
+                .addResourceLocations("file:/C:/uploads/");
     }
-
 }

@@ -21,7 +21,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(userid)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000*60*30))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000*60*60))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // Key 타입 사용
                 .compact();
     }
