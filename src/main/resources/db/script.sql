@@ -68,14 +68,14 @@ USE hagglemarket;
 CREATE TABLE auction_posts
 (
     auction_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_no INT NOT NULL,                    -- 판매자
+    user_no INT NOT NULL,                     -- 판매자
     category_id INT NOT NULL,                 -- 카테고리
     title VARCHAR(50) NOT NULL,               -- 제목
     content TEXT NOT NULL,                    -- 내용
 
     start_cost INT NOT NULL,                  -- 시작가
     current_cost INT NOT NULL,                -- 현재가
-    buyout_cost INT NULL,                     -- 즉시구매가
+    buyout_cost INT NULL,                     -- 즉시구매가 (선택사항)
 
     start_time DATETIME NOT NULL,             -- 경매 시작시간
     end_time DATETIME NOT NULL,               -- 경매 종료시간
@@ -100,8 +100,8 @@ CREATE TABLE auction_posts
 -- 경매 상품 이미지 테이블
 CREATE TABLE auction_post_images
 (
-    image_id INT AUTO_INCREMENT PRIMARY KEY,      -- 이미지 아이디
-    auction_id INT NOT NULL,                      -- 경매 아이디
+    image_id INT AUTO_INCREMENT PRIMARY KEY,       -- 이미지 아이디
+    auction_id INT NOT NULL,                       -- 경매 아이디
     image_data LONGBLOB NOT NULL,                  -- 이미지 바이너리 데이터
     image_name VARCHAR(255) NOT NULL,              -- 원본 이미지 이름
     image_type VARCHAR(50) NOT NULL,               -- 이미지 타입 (ex: image/png)

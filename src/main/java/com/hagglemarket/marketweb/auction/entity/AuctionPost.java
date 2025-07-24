@@ -20,6 +20,9 @@ public class AuctionPost {
     @JoinColumn(name = "user_no", nullable = false) //FK, not null
     private User seller;
 
+    @Column(name = "category_id")
+    private Integer category;
+
     @Column(nullable = false, length = 50)
     private String title;
 
