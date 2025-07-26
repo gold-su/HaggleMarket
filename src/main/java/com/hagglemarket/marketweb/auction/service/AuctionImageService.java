@@ -2,6 +2,7 @@ package com.hagglemarket.marketweb.auction.service;
 
 import com.hagglemarket.marketweb.auction.entity.AuctionImage;
 import com.hagglemarket.marketweb.auction.entity.AuctionPost;
+import com.hagglemarket.marketweb.auction.repository.AuctionImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +58,6 @@ public class AuctionImageService {
         }
 
         //저장된 이미지 리스트 리턴
-        return savedImages;
+        return auctionImageRepository.saveAll(savedImages) ; //saveAll = 이미지 한 번에 DB에 저장
     }
 }
