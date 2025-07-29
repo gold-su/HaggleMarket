@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity //엔티티로 명시
 @Table(name = "auction_posts") //DB 테이블 이름 저장 / 필수는 아니지만 정확성을 위해
@@ -63,5 +65,8 @@ public class AuctionPost {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "winner_user_no")
     private User winner;
+
+    @OneToMany(mappedBy = "auctionPost", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AuctionImage> images = new ArrayList<>();
 
 }
