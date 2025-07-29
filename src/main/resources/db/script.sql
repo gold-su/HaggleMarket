@@ -69,7 +69,7 @@ CREATE TABLE auction_posts
 (
     auction_id INT AUTO_INCREMENT PRIMARY KEY,
     user_no INT NOT NULL,                     -- 판매자
-    category_id INT NULL,                 -- 카테고리
+    category_id INT NULL,                     -- 카테고리
     title VARCHAR(50) NOT NULL,               -- 제목
     content TEXT NOT NULL,                    -- 내용
 
