@@ -18,6 +18,6 @@ public interface AuctionPostRepository extends JpaRepository<AuctionPost, Intege
             "p.auctionId, p.title, i.imageName, p.currentCost, p.endTime)" +
             "FROM AuctionPost p " +         //AuctionPost를 기준으로 조회 (엔티티 이름 기준)
             "LEFT JOIN p.images i with i.sortOrder = 1 " +    //AUctionPost와 연결된 images 중에 sortOrder == 1인 이미지만 조인 / 1은 첫번째 이미지
-            " BY p.createdAt DESC")                    //ORDER BY p.createdAt DESC : 최신 등록된 게시물이 먼저 보이도록 정렬
+            "ORDER BY p.createdAt DESC")                    //ORDER BY p.createdAt DESC : 최신 등록된 게시물이 먼저 보이도록 정렬
     List<AuctionListDTO> findAllWithThumbnail();
 }
