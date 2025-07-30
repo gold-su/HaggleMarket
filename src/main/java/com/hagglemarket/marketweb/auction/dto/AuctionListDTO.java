@@ -13,4 +13,6 @@ public class AuctionListDTO {
     private String thumbnailUrl;
     private Integer highestBid;
     private LocalDateTime endTime;
+    private int hit;        //조회수
+    private int bidCount;   //입찰 횟수
 }

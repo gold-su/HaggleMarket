@@ -1,6 +1,7 @@
 package com.hagglemarket.marketweb.auction.service;
 
 import com.hagglemarket.marketweb.auction.dto.AuctionDetailDTO;
+import com.hagglemarket.marketweb.auction.dto.AuctionListDTO;
 import com.hagglemarket.marketweb.auction.dto.AuctionPostRequest;
 import com.hagglemarket.marketweb.auction.dto.AuctionPostResponse;
 import com.hagglemarket.marketweb.auction.entity.AuctionImage;
@@ -49,7 +50,12 @@ public class AuctionPostService {
 
     }
 
-    @Transactional //읽기 전용
+
+    public List<AuctionListDTO> getAuctionList() {
+        return auctionPostRepository.findAllWithThumbnail();
+    }
+
+    @Transactional//쓰기 가능 트랜잭션 / 읽기 전용도 가능 ( 기본값은 false )
     public AuctionDetailDTO getAuctionDetail(int auctionId){
 
         AuctionPost post = auctionPostRepository.findById(auctionId)  //auctionId로 DB 에서 경매 글 조회
@@ -59,6 +65,10 @@ public class AuctionPostService {
         List<String> imageNames = post.getImages().stream()
                 .map(AuctionImage::getImageName)
                 .toList();
+
+        //getAuctionDetail() 호출 시 +1
+        post.setHit(post.getHit() + 1);
+        auctionPostRepository.save(post);
 
         //DTO를 builder 패턴으로 생성
         return AuctionDetailDTO.builder()
@@ -72,6 +82,8 @@ public class AuctionPostService {
                 .imagesName(imageNames)
                 .sellerNickname(post.getSeller().getNickName())
                 .winnerNickname(post.getWinner() == null ? null : post.getWinner().getNickName()) //null일 수 있음
+                .hit(post.getHit())
+                .bidCount(post.getBidCount())
                 .build();
     }
 }
