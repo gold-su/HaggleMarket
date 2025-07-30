@@ -54,6 +54,10 @@ public class Post {
     @Column(name = "hit",nullable = false)
     private int hit;
 
+    public void increaseHit() {
+        this.hit += 1;
+    }
+
     @Column(name = "created_at",updatable = false,insertable = false)
     private LocalDateTime createdAt;
 

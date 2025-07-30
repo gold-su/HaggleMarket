@@ -6,12 +6,12 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-public class PostRequestDto {
+public class PostUpdateRequestDto {
+
     @NotBlank(message = "제목은 필수입니다.")
     private String title;
 
@@ -21,16 +21,25 @@ public class PostRequestDto {
     @NotBlank(message = "내용은 필수입니다.")
     private String content;
 
-    private Post.ProductStatus productStatus; // 예: NEW, USED
+    // 상품 상태 (예: LIKE_NEW, USED_GOOD 등)
+    private Post.ProductStatus productStatus;
 
+    // 가격 제안 허용 여부
     private boolean negotiable;
+
+    // 교환 가능 여부
     private boolean swapping;
+
+    // 배송비 포함 여부
     private boolean deliveryFee;
 
-    private List<String> imageUrls = new ArrayList<>();
+    // 이미지 URL 리스트 (수정 시 기존 + 새 이미지 포함)
+    private List<String> imageUrls;
+
+    // 게시글 상태 (예: 판매중, 예약중, 판매완료 등 — 필요에 따라 활용)
     private Post.Poststatus status;
 
     private String category;       // 소분류 이름
-    private String tag;            // 태그 문자열 (#태그1,#태그2 등)
-    private String tradeLocation;
+    private String tag;            // 태그 문자열
+    private String tradeLocation;  // 거래 지역
 }

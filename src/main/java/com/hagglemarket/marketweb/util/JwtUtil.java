@@ -17,9 +17,10 @@ public class JwtUtil {
     // SecretKey 생성
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes());
 
-    public String generateToken(String userid) {
+    public String generateToken(String userid,int userNo) {
         return Jwts.builder()
                 .setSubject(userid)
+                .claim("userNo", userNo)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000*60*60))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // Key 타입 사용

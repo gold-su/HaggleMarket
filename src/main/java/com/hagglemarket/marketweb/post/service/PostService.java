@@ -1,22 +1,30 @@
 package com.hagglemarket.marketweb.post.service;
 
-import com.hagglemarket.marketweb.post.dto.PostCardDto;
-import com.hagglemarket.marketweb.post.dto.PostDetailResponse;
-import com.hagglemarket.marketweb.post.dto.PostRequestDto;
-import com.hagglemarket.marketweb.post.dto.PostResponseDto;
+import com.hagglemarket.marketweb.post.dto.*;
 import com.hagglemarket.marketweb.post.entity.Post;
 import com.hagglemarket.marketweb.post.entity.PostImage;
 import com.hagglemarket.marketweb.post.repository.PostImageRepository;
 import com.hagglemarket.marketweb.post.repository.PostRepository;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -42,7 +50,7 @@ public class PostService {
                         .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다.")))
                 .build();
 
-        // 🔄 이미지 URL 리스트만 처리
+        // 이미지 URL 리스트만 처리
         if (dto.getImageUrls() != null) {
             for (int i = 0; i < dto.getImageUrls().size(); i++) {
                 String imageUrl = dto.getImageUrls().get(i);
@@ -106,4 +114,97 @@ public class PostService {
 
         return PostDetailResponse.from(post, isMine, imageUrls);
     }
+
+//    @Transactional
+//    public void increaseHit(Integer postId, HttpServletRequest request, CustomUserDetails user) {
+//        try {
+//            Post post = postRepository.findById(postId)
+//                    .orElseThrow(() -> new RuntimeException("해당 게시물 없음"));
+//
+//            String userKey;
+//            if (user != null) {
+//                userKey = "USER_" + user.getUserNo(); // 로그인 사용자 기준
+//            } else {
+//                userKey = "IP_" + request.getRemoteAddr(); // 비로그인 → IP 기준
+//            }
+//
+//            String redisKey = "post_hit:" + postId + ":" + userKey;
+//
+//            if (redisTemplate.hasKey(redisKey)) {
+//                return;
+//            }
+//
+//            post.increaseHit();
+//            log.info(" 조회수 증가: postId={}, hit={}", postId, post.getHit());
+//            redisTemplate.opsForValue().set(redisKey, "viewed", Duration.ofSeconds(10));
+//
+//        } catch (Exception e) {
+//            log.error("조회수 증가 중 예외 발생: {}", e.getMessage(), e);
+//            throw e;
+//        }
+//    }
+    @Transactional
+    public void increaseHitWithSession(Integer postId, HttpServletRequest request) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new RuntimeException("해당 게시물 없음"));
+
+        HttpSession session = request.getSession();
+        Object viewedObj = session.getAttribute("viewedPosts");
+
+        Set<Integer> viewedPosts;
+
+        if (viewedObj instanceof Set<?>) {
+            // 경고 억제 및 캐스팅
+            @SuppressWarnings("unchecked")
+            Set<Integer> safeCast = (Set<Integer>) viewedObj;
+            viewedPosts = safeCast;
+        } else {
+            viewedPosts = new HashSet<>();
+        }
+
+        if (!viewedPosts.contains(postId)) {
+            post.increaseHit(); // 실제 조회수 증가
+            viewedPosts.add(postId); // 세션에 저장
+            session.setAttribute("viewedPosts", viewedPosts); // 세션 갱신
+        }
+    }
+
+    @Transactional
+    public void updatePost(int postId, PostUpdateRequestDto dto, int userNo) throws AccessDeniedException {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        // 작성자 검증
+        if (post.getUser().getUserNo() != userNo) {
+            throw new AccessDeniedException("본인 글만 수정할 수 있습니다.");
+        }
+
+        // 1. 텍스트 필드 수정
+        post.setTitle(dto.getTitle());
+        post.setContent(dto.getContent());
+        post.setCost(dto.getCost());
+        post.setNegotiable(dto.isNegotiable());
+        post.setSwapping(dto.isSwapping());
+        post.setDeliveryFee(dto.isDeliveryFee());
+        post.setProductStatus(dto.getProductStatus());
+
+        // 2. 이미지 교체 로직
+        // 기존 이미지 모두 삭제
+        post.getImages().clear();
+
+        // 새로운 이미지 URL 리스트를 순서대로 다시 추가
+        if (dto.getImageUrls() != null) {
+            for (int i = 0; i < dto.getImageUrls().size(); i++) {
+                String url = dto.getImageUrls().get(i);
+                PostImage postImage = PostImage.builder()
+                        .post(post)
+                        .imageUrl(url)
+                        .sortOrder(i + 1)  // 1,2,3 순서 저장
+                        .build();
+                post.getImages().add(postImage);
+            }
+        }
+    }
+
+
 }

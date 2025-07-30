@@ -1,11 +1,10 @@
 package com.hagglemarket.marketweb.post.controller;
 
-import com.hagglemarket.marketweb.post.dto.PostCardDto;
-import com.hagglemarket.marketweb.post.dto.PostDetailResponse;
-import com.hagglemarket.marketweb.post.dto.PostRequestDto;
-import com.hagglemarket.marketweb.post.dto.PostResponseDto;
+import com.hagglemarket.marketweb.post.dto.*;
 import com.hagglemarket.marketweb.post.service.PostService;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
+import com.hagglemarket.marketweb.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -19,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +61,7 @@ public class PostController {
     }
 
     @GetMapping
-    public Page<PostCardDto> getPosts(@PageableDefault(size=8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    public Page<PostCardDto> getPosts(@PageableDefault(size = 8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return postService.getPostCards(pageable);
     }
 
@@ -74,5 +74,24 @@ public class PostController {
 
         PostDetailResponse response = postService.getPostDetail(postId, userNo);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{postId}/hit")
+    public ResponseEntity<Void> increaseHit(@PathVariable Integer postId,
+                                            HttpServletRequest request) {
+        postService.increaseHitWithSession(postId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{postId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updatePost(
+            @PathVariable Integer postId,
+            @Valid @RequestBody PostUpdateRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) throws AccessDeniedException {
+
+        postService.updatePost(postId, dto, user.getUserNo());
+        return ResponseEntity.ok().build();
     }
 }

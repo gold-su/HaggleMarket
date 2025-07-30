@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -39,11 +40,13 @@ public class SecurityConfig {
                                 "/api/users/signup",
                                 "/api/users/upload"
                         ).permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/products").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/products/detail/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/products").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/products/images").authenticated()
+                        .requestMatchers(HttpMethod.PUT,"/api/products/**").authenticated()
                         .requestMatchers(HttpMethod.OPTIONS,"/**", "/js/**", "/images/**","/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -70,5 +73,12 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers("/uploads/**");
+    }
+
 }
 

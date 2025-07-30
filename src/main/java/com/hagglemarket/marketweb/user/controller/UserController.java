@@ -21,7 +21,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 
-import java.util.Map;
 
 @RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
@@ -47,7 +46,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String token = jwtUtil.generateToken(user.getUserId());
+        String token = jwtUtil.generateToken(user.getUserId(),user.getUserNo());
         LoginResponseDTO response = new LoginResponseDTO(
                 user.getUserId(),
                 token,
