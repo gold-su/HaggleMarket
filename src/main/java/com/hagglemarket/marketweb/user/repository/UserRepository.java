@@ -30,7 +30,10 @@ public interface UserRepository extends JpaRepository<User, Integer> { //User는
 
 
     //null이 나올수도 아닐수도 있기 때문에 Optional로 구현
-    //userId를 기준으로 DB에서 찾는 메서드
+    //userId("pds0130")를 기준으로 DB에서 찾는 메서드
     //로그인, 유저 정보 수정/조회, 인증/인가 처리할 때 사용예정
     Optional<User> findByUserId(String userId);
+    
+    //userNo("1")를 기준으로 DB에서 찾는 메서드
+    Optional<User> findByUserNo(int userNo);
 }
