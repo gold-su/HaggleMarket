@@ -7,6 +7,7 @@ import com.hagglemarket.marketweb.auction.entity.AuctionPost;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 //경매 상품 전용 리포지토리
@@ -22,5 +23,5 @@ public interface AuctionPostRepository extends JpaRepository<AuctionPost, Intege
             "ORDER BY p.createdAt DESC")                    //ORDER BY p.createdAt DESC : 최신 등록된 게시물이 먼저 보이도록 정렬
     List<AuctionListDTO> findAllWithThumbnail();
 
-
+    List<AuctionPost> findByEndTimeBeforeAndClosedFalse(LocalDateTime now);
 }
