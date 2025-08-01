@@ -4,12 +4,14 @@ package com.hagglemarket.marketweb.user.repository;
 import com.hagglemarket.marketweb.user.entity.User;
 //JPA REPOSITORY 인터페이스
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 //NULL 안정성 클래스
 import java.util.Optional;
 
 //DB에 접근해서 데이터 조회/저장/삭제하는 역할
 //DAO 대신 역할 / DAO는 JDBC << 구식
 //interface로 정의
+@Repository
 public interface UserRepository extends JpaRepository<User, Integer> { //User는 entity 클래스, Integer는 Id 값이 integer 라서
 
     //UserId가 DB에 이미 존재하는지 true/false로 확인
