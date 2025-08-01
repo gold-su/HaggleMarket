@@ -11,17 +11,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController//@Controller + @ResponseBody를 합친 어노테이션 / 반환값을 JSON 형식으로 자동 변환
 @RequiredArgsConstructor //final 필드 자동으로 생성자 주입
@@ -60,20 +68,114 @@ public class UserController {
 
 
 
+//    //비즈니스 로직을 담당할 UserService 주입
+//    //회원가입 기능 실제로 수행
+//    @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
+//    public ResponseEntity<String> signUp(@RequestBody @Valid UserJoinDTO dto) {
+//        //ResponseEntity<String>: 응답으로 문자열 메시지를 보내고, 상태 코드도 포함 가능
+//        //@RequestBody: JSON 데이터를 UserJoinDTO 객체로 바인딩
+//        //@Valid: DTO 클래스에 설정된 유효성 검사(예: @NotBlank,Size,Email)를 실행
+//
+//        //userService에 join 메서드 실행
+//        userService.join(dto);
+//
+//        //회원가입 성공 body로 보내줌. 위에서 오류 발생시 throw로 인해 실행되지 않음
+//        //.ok는 200번대 성공 HTTP 상태 코드
+//        return ResponseEntity.ok("회원가입 성공");
+//    }
+
+
     //비즈니스 로직을 담당할 UserService 주입
     //회원가입 기능 실제로 수행
     @PostMapping("/signup") //POST 요청으로 엔드포인트 지정 / React에서 axios.post("/api/users/signup", {...}) 요청이 여기로 연결
-    public ResponseEntity<String> signUp(@RequestBody @Valid UserJoinDTO dto) {
-        //ResponseEntity<String>: 응답으로 문자열 메시지를 보내고, 상태 코드도 포함 가능
-        //@RequestBody: JSON 데이터를 UserJoinDTO 객체로 바인딩
-        //@Valid: DTO 클래스에 설정된 유효성 검사(예: @NotBlank,Size,Email)를 실행
+    public ResponseEntity<?> signUp(
+            @Valid @RequestPart("user") UserJoinDTO dto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) throws IOException {
 
-        //userService에 join 메서드 실행
-        userService.join(dto);
 
-        //회원가입 성공 body로 보내줌. 위에서 오류 발생시 throw로 인해 실행되지 않음
-        //.ok는 200번대 성공 HTTP 상태 코드
-        return ResponseEntity.ok("회원가입 성공");
+            log.info("회원가입 요청 : {}", dto);
+//            spring 기반 오류 검출로 코드 수정
+//            //validator 수동 호출
+//            BindingResult bindingResult = new BeanPropertyBindingResult(dto, "user");
+//            validator.validate(dto, bindingResult);
+//
+//            if(bindingResult.hasErrors()){
+//                //에러맵으로 변환
+//                Map<String, String> errorMap = bindingResult.getFieldErrors().stream()
+//                        .collect(Collectors.toMap(
+//                                FieldError::getField,
+//                                FieldError::getDefaultMessage));
+//                return ResponseEntity.badRequest().body(errorMap);
+//            }
+
+            if (profileImage != null && !profileImage.isEmpty()) {
+                log.info("업로된 이미지 이름 : {}", profileImage.getOriginalFilename());
+
+                //클라이언트가 이미지 파일만 업로드 가능하게끔 설정
+                if (!profileImage.getContentType().startsWith("image/")) {
+                    throw new IllegalArgumentException("global:이미지 파일만 업로드 가능합니다.");
+                }
+
+                //이미지 파일 저장 로직
+                String folderName = "profile";
+                //오리지널 파일 이름
+                String originalFilename = profileImage.getOriginalFilename();
+                //뒤 확장자 제거
+                String cleanName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+                //확장자 제거한 파일 이름으로 fileName 선언
+                String fileName = UUID.randomUUID().toString() + "_" + cleanName + ".jpg";
+                //파일의 실제 저장 경로를 만드는 코드
+                Path path = Paths.get(uploadDir, folderName, fileName);
+                //이미지 생성할 디렉토리가 없으면 폴더 자동 생성
+                Files.createDirectories(path.getParent());
+                //원본 이미지 데이터 그대로 바이트 배열로 읽어서 파일로 저장
+                //Files.write(path, profileImage.getBytes());
+
+                // 이미지 데이터를 BufferedImage로 읽기
+                //업로된 파일을 InputStream으로 읽어오기
+                //ImageIO.read()로 이미지를 메모리에 올려서 자바가 처리 가능한 이미지 객체(BufferedImage)로 변환
+                InputStream inputStream = profileImage.getInputStream();
+                BufferedImage bufferedImage = ImageIO.read(inputStream);
+
+                //JPG로 변환하여 저장
+                File outputFile = path.toFile();
+                //업로된 이미지 사이즈 조정
+                int targetWidth = 500; // 원하는 가로 사이즈
+                int targetHeight = (bufferedImage.getHeight() * targetWidth) / bufferedImage.getWidth();
+
+                // 새로운 BufferedImage 생성
+                BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+
+                // 기존 이미지를 새로운 이미지로 스케일링
+                Graphics2D g2d = resizedImage.createGraphics();
+                g2d.drawImage(bufferedImage, 0, 0, targetWidth, targetHeight, null);
+                g2d.dispose();
+
+                //BuffredImage를 무조건 JPG 형식으로 인코딩 후 파일로 저장
+                ImageIO.write(resizedImage, "jpg", outputFile);
+
+                //폴더명과 파일명이 포함한 상태로 이미지 저장
+                //dto.setImageURL("http://localhost:8080/uploads/"+folderName+"/"+fileName);
+                String fileUrl = "/uploads/" + folderName + "/" + fileName;
+                dto.setImageURL(fileUrl); //DTO에 이미지 URL 세팅
+            } else {
+                log.info("이미지 없이 회원가입 요청");
+                dto.setImageURL(null); // 이미지 없으면 URL은 null 처리
+            }
+
+//            //userService에 vaildateAndJoin 메서드 실행 후 오류가 있다면 Map 받아 옴
+//            Map<String, String> errors = userService.vaildateAndJoin(dto);
+
+//            //오류가 있으면 프론트로 반환
+//            if(!errors.isEmpty()){
+//                return ResponseEntity.badRequest().body(errors);
+//            }
+
+            userService.join(dto);
+            //회원가입 성공 body로 보내줌. 위에서 오류 발생시 throw로 인해 실행되지 않음
+            //.ok는 200번대 성공 HTTP 상태 코드
+            return ResponseEntity.ok(Map.of("success","회원가입 성공"));
+
     }
 
     //api/users/me
@@ -139,36 +241,36 @@ public class UserController {
         return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
     }
 
-    //맵핑                                //consumes는 HTTP 요청의 Content-Type을 검사
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // 컨트롤러 메서드가 multipart/form-data 형식의 요청만 처리하도록 강제 설정
-    //클라이언트가 보낸 이미지 파일을 받음
-    //@RequestParam("file"): 요청의 form-data에 포함된 "file" 파라미터로 파일 받기
-    //MultipartFile: 업로드된 파일 데이터가 들어있는 객체
-    public ResponseEntity<String> uploadProfileImage(@RequestPart("file") MultipartFile file) {
-        try{
-            //파일 저장 결로 수정
-            String folderName = "profile"; // 회원가입 프로필 이미지 폴더
-            //중복 방지를 위해 랜덤한 UUID로 파일 이름 생성
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            //파일 저장 경로 생성
-            //uploadDir: 파일을 저장할 폴더 경로 예) "uploads/" 👉 실제 저장 위치는 uploads/랜덤파일명
-            Path path = Paths.get(uploadDir + folderName + "/" + fileName);
-            //uploads/ 폴더가 없으면 자동 생성
-            Files.createDirectories(path.getParent());
-            //업로드된 파일 데이터를 바이트 배열로 읽어서 서버에 저장
-            Files.write(path, file.getBytes());
-
-            //클라이언트가 나중에 이 파일에 접근할 수 있는 URL 생성
-            //React가 회원가입/마이페이지 화면에 이 URL을 넣어주면 됨
-            String fileUrl = "http://localhost:8080/uploads/" + folderName + "/" + fileName; //반환할 URL
-
-            return ResponseEntity.ok(fileUrl); //업로드 성공 시 HTTP 200 OK와 함께 파일 URL 반환
-        }catch (IOException e){
-            //HTTP 500 에러 반환
-            //"Upload failed"라는 메시지 전달
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload failed");
-        }
-    }
+//    //맵핑                                //consumes는 HTTP 요청의 Content-Type을 검사
+//    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // 컨트롤러 메서드가 multipart/form-data 형식의 요청만 처리하도록 강제 설정
+//    //클라이언트가 보낸 이미지 파일을 받음
+//    //@RequestParam("file"): 요청의 form-data에 포함된 "file" 파라미터로 파일 받기
+//    //MultipartFile: 업로드된 파일 데이터가 들어있는 객체
+//    public ResponseEntity<String> uploadProfileImage(@RequestPart("file") MultipartFile file) {
+//        try{
+//            //파일 저장 결로 수정
+//            String folderName = "profile"; // 회원가입 프로필 이미지 폴더
+//            //중복 방지를 위해 랜덤한 UUID로 파일 이름 생성
+//            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+//            //파일 저장 경로 생성
+//            //uploadDir: 파일을 저장할 폴더 경로 예) "uploads/" 👉 실제 저장 위치는 uploads/랜덤파일명
+//            Path path = Paths.get(uploadDir + folderName + "/" + fileName);
+//            //uploads/ 폴더가 없으면 자동 생성
+//            Files.createDirectories(path.getParent());
+//            //업로드된 파일 데이터를 바이트 배열로 읽어서 서버에 저장
+//            Files.write(path, file.getBytes());
+//
+//            //클라이언트가 나중에 이 파일에 접근할 수 있는 URL 생성
+//            //React가 회원가입/마이페이지 화면에 이 URL을 넣어주면 됨
+//            String fileUrl = "http://localhost:8080/uploads/" + folderName + "/" + fileName; //반환할 URL
+//
+//            return ResponseEntity.ok(fileUrl); //업로드 성공 시 HTTP 200 OK와 함께 파일 URL 반환
+//        }catch (IOException e){
+//            //HTTP 500 에러 반환
+//            //"Upload failed"라는 메시지 전달
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload failed");
+//        }
+//    }
 
     //비밀번호 확인
     @PostMapping("/check-password")          //클라이언트가 JSON으로 보낸 데이터 payload에 담음 //요청 헤더에 있는 토큰을 가져오기 위해 사용
