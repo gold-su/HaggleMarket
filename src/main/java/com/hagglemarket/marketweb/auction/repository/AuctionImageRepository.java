@@ -2,8 +2,10 @@ package com.hagglemarket.marketweb.auction.repository;
 
 import com.hagglemarket.marketweb.auction.entity.AuctionImage;
 import com.hagglemarket.marketweb.auction.entity.AuctionPost;
+import com.hagglemarket.marketweb.auction.entity.AuctionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AuctionImageRepository extends JpaRepository<AuctionImage, Integer> {
@@ -16,4 +18,6 @@ public interface AuctionImageRepository extends JpaRepository<AuctionImage, Inte
 
     //특정 이미지 하나만 삭제 (예 : 프론트에서 이미지 X 버튼 눌렀을 때)
     void deleteById(int imageId);
+
+
 }

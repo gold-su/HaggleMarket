@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -57,6 +58,19 @@ public class AuctionScheduler { //클래스 이름은 보통 Scheduler 또는 Jo
             auction.setStatus(AuctionStatus.ENDED);
             //이 변경된 경매글을 DB에 저장해서 반영.
             auctionPostRepository.save(auction);
+        }
+    }
+
+    @Scheduled(fixedDelay = 60000) //1분마다 실행
+    public void updateAuctionStatusToOngoing(){
+        //List 형식으로 startTime이 지난 경매글들 불러오기
+        List<AuctionPost> toStart = auctionPostRepository.findByStartTimeBeforeAndStatus(LocalDateTime.now(), AuctionStatus.READY);
+
+        //List 애들 차례대로 AuctionStatus를 ONGOING 으로 변경
+        for (AuctionPost auction : toStart) {
+            auction.setStatus(AuctionStatus.ONGOING);
+            auctionPostRepository.save(auction);    //변경 후 저장
+            log.info("[경매 시작 처리] 경매 ID: {}", auction.getAuctionId());
         }
     }
 }
