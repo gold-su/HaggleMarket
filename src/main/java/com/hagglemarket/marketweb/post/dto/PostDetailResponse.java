@@ -26,27 +26,10 @@ public class PostDetailResponse {
     private LocalDateTime createdAt;
     private String status;
     private boolean isMine;
+    private Integer categoryId;
+    private String categoryPath;
     private List<String> images;
     private SellerInfo seller;
-
-    public static PostDetailResponse from(Post post, boolean isMine,List<String> imageUrls) {
-        return PostDetailResponse.builder()
-                .postId(post.getPostId())
-                .title(post.getTitle())
-                .productStatus(post.getProductStatus().name())
-                .cost(post.getCost())
-                .negotiable(post.isNegotiable())
-                .swapping(post.isSwapping())
-                .deliveryFee(post.isDeliveryFee())
-                .content(post.getContent())
-                .hit(post.getHit())
-                .createdAt(post.getCreatedAt())
-                .status(post.getStatus().name())
-                .isMine(isMine)
-                .images(imageUrls)
-                .seller(new SellerInfo(post.getUser()))
-                .build();
-    }
 
     @Getter
     public static class SellerInfo {

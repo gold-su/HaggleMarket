@@ -14,6 +14,7 @@ public class PostResponseDto {
     private String title;
     private int cost;
     private String content;
+    private int categoryId;
 
     private String productStatus;
     private boolean negotiable;

@@ -32,6 +32,9 @@ public class Post {
         NEW, USED_LIKE_NEW, USED, DAMAGED
     }
 
+    @Column(name="category_id",nullable = false)
+    private Integer categoryId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "product_status", nullable = false)
     private ProductStatus productStatus;

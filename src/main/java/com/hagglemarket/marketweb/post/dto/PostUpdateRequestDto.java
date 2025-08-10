@@ -39,7 +39,7 @@ public class PostUpdateRequestDto {
     // 게시글 상태 (예: 판매중, 예약중, 판매완료 등 — 필요에 따라 활용)
     private Post.Poststatus status;
 
-    private String category;       // 소분류 이름
+    private int categoryId;
     private String tag;            // 태그 문자열
     private String tradeLocation;  // 거래 지역
 }

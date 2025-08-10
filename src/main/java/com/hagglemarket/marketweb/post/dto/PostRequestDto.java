@@ -15,6 +15,8 @@ public class PostRequestDto {
     @NotBlank(message = "제목은 필수입니다.")
     private String title;
 
+    private int categoryId;
+
     @Min(value = 0, message = "가격은 0원 이상이어야 합니다.")
     private int cost;
 

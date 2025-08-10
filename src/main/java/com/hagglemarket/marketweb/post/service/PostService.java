@@ -1,5 +1,7 @@
 package com.hagglemarket.marketweb.post.service;
 
+import com.hagglemarket.marketweb.category.entity.Category;
+import com.hagglemarket.marketweb.category.repository.CategoryRepository;
 import com.hagglemarket.marketweb.post.dto.*;
 import com.hagglemarket.marketweb.post.entity.Post;
 import com.hagglemarket.marketweb.post.entity.PostImage;
@@ -32,6 +34,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     public PostResponseDto createPost(PostRequestDto dto) {
         int userNo = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserNo();
@@ -39,6 +42,7 @@ public class PostService {
         Post post = Post.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
+                .categoryId(dto.getCategoryId())
                 .cost(dto.getCost())
                 .productStatus(dto.getProductStatus())
                 .negotiable(dto.isNegotiable())
@@ -69,6 +73,7 @@ public class PostService {
                 .postId(saved.getPostId())
                 .title(saved.getTitle())
                 .content(saved.getContent())
+                .categoryId(saved.getCategoryId())
                 .cost(saved.getCost())
                 .productStatus(saved.getProductStatus().name())
                 .negotiable(saved.isNegotiable())
@@ -112,7 +117,35 @@ public class PostService {
 
         List<String> imageUrls = postImageRepository.findImageUrlsByPostId(postId);
 
-        return PostDetailResponse.from(post, isMine, imageUrls);
+        // === 카테고리 경로 문자열 만들기 ===
+        String categoryPath = null;
+        if (post.getCategoryId() != null) {
+            Category small = categoryRepository.findById(post.getCategoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
+            Category middle = small.getParent();
+            Category large = middle.getParent();
+            categoryPath = large.getName() + " > " + middle.getName() + " > " + small.getName();
+        }
+
+        // PostDetailResponse.builder() 직접 사용
+        return PostDetailResponse.builder()
+                .postId(post.getPostId())
+                .title(post.getTitle())
+                .productStatus(post.getProductStatus().name())
+                .cost(post.getCost())
+                .negotiable(post.isNegotiable())
+                .swapping(post.isSwapping())
+                .deliveryFee(post.isDeliveryFee())
+                .content(post.getContent())
+                .hit(post.getHit())
+                .createdAt(post.getCreatedAt())
+                .status(post.getStatus().name())
+                .isMine(isMine)
+                .categoryId(post.getCategoryId())
+                .categoryPath(categoryPath) // 여기서 직접 세팅
+                .images(imageUrls)
+                .seller(new PostDetailResponse.SellerInfo(post.getUser()))
+                .build();
     }
 
 //    @Transactional
@@ -183,6 +216,7 @@ public class PostService {
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
         post.setCost(dto.getCost());
+        post.setCategoryId(dto.getCategoryId());
         post.setNegotiable(dto.isNegotiable());
         post.setSwapping(dto.isSwapping());
         post.setDeliveryFee(dto.isDeliveryFee());
@@ -205,6 +239,4 @@ public class PostService {
             }
         }
     }
-
-
 }

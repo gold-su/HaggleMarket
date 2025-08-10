@@ -44,6 +44,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/products").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/products/detail/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/uploads/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET,"/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/categories/**").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/api/products").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/products/images").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/api/products/**").authenticated()
