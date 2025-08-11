@@ -1,4 +1,4 @@
-package com.hagglemarket.marketweb.bid.service;
+package com.hagglemarket.marketweb.websocket.service;
 
 import com.hagglemarket.marketweb.bid.dto.BidResponseDTO;
 import lombok.RequiredArgsConstructor;
