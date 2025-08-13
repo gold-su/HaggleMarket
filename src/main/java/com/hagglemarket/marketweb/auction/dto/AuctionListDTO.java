@@ -11,7 +11,7 @@ public class AuctionListDTO {
     private int id;
     private String title;
     private String thumbnailUrl;
-    private Integer highestBid;
+    private Integer currentPrice;
     private LocalDateTime endTime;
     private int hit;        //조회수
     private int bidCount;   //입찰 횟수

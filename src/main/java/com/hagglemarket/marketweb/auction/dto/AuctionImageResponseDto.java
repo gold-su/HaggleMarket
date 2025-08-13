@@ -7,6 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
 public class AuctionImageResponseDto {
     private int count;              //이미지 총 개수
     private List<ImageInfo> images; //이미지 정보 리스트

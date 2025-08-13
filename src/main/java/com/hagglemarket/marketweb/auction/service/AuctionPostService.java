@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.ResourceTransactionManager;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service //스프링이 이 클래스를 서비스 빈으로 등록
@@ -52,7 +53,33 @@ public class AuctionPostService {
 
 
     public List<AuctionListDTO> getAuctionList() {
-        return auctionPostRepository.findAllWithThumbnail();
+        List<AuctionPost> posts = auctionPostRepository.findAll(); //필요한 조회 쿼리
+
+        return posts.stream().map(post -> {
+            String thumbnailUrl = null;
+
+            //첫 번째 이미지가 있다면 URL 생성
+            if(!post.getImages().isEmpty()) {
+                int firstImageId = post.getImages()
+                        .stream()
+                        .sorted(Comparator.comparingInt(AuctionImage::getSortOrder))
+                        .findFirst()
+                        .get()
+                        .getImageId();
+                thumbnailUrl = "/api/auction/images/" + firstImageId;
+            }
+
+            return AuctionListDTO.builder()
+                    .id(post.getAuctionId())
+                    .title(post.getTitle())
+                    .thumbnailUrl(thumbnailUrl)
+                    .currentPrice(post.getCurrentCost())
+                    .endTime(post.getEndTime())
+                    .hit(post.getHit())
+                    .bidCount(post.getBidCount())
+                    .build();
+        }).toList();
+
     }
 
     @Transactional//쓰기 가능 트랜잭션 / 읽기 전용도 가능 ( 기본값은 false )

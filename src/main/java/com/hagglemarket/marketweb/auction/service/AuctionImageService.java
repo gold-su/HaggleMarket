@@ -21,13 +21,6 @@ public class AuctionImageService {
 
     private final AuctionImageRepository auctionImageRepository;
 
-    /**
-     * 경매 이미지 저장 메서드
-     * @param files MultipartFile 리스트 (프론트에서 업로드한 이미지)
-     * @param auctionPost 어떤 경매 상품에 속하는 이미지인지
-     * @return 저장된 AuctionImage 리스트
-     */
-
     @Transactional //이미지 저장 중 예외가 생기면 롤백 되도록 명시
     //경매 상품 이미지들을 DB에 저장하는 메서드
     // MultipartFile files = 프론트에서 업로드한 이미지들
@@ -36,6 +29,16 @@ public class AuctionImageService {
     public List<AuctionImageResponseDto.ImageInfo> saveImages(AuctionImageRequestDto req, AuctionPost auctionPost) {
         List<MultipartFile> files = req.getImages(); //업로드된 파일 목록
         List<Integer> orders = req.getSortOrder();   //파일별 정렬 순서(없으면 null)
+
+        if(files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("이미지는 최소 1개 이상 업로드해야 합니다.");
+        }
+
+        if(files.size() > 12) {
+            throw new IllegalArgumentException("이미지는 최대 12개까지 업로드 가능합니다.");
+        }
+
+
         List<AuctionImageResponseDto.ImageInfo> results = new ArrayList<>(); //응답 DTO로 보낼 이미지 정보 저장용
 
 
@@ -48,6 +51,9 @@ public class AuctionImageService {
             MultipartFile file = files.get(i);
             //정렬 순서가 요청에 있으면 그 값 사용
             //없으면 인덱스(i+1)로 기본 설정
+            //즉, 정렬 순서 리스트가 존재하고, 현재 파일에 해당하는 순서 값이 들어있다면 -> 참
+            // -> 참일 때 실행 orders.get(i) = orders 리스트에서 현재 인덱스(i)에 해당하는 값을 가져옴.
+            // -> 거짓일 때 실행 (i + 1) = 리스트가 없거나(i보다 길이가 짧거나) → 기본값으로 현재 인덱스+1 사용.
             int sortOrder = (orders != null && orders.size() > i) ? orders.get(i) : (i + 1);
             try {
                 AuctionImage saved = auctionImageRepository.save(
