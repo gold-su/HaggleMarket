@@ -79,7 +79,6 @@ public class AuctionPostService {
                     .bidCount(post.getBidCount())
                     .build();
         }).toList();
-
     }
 
     @Transactional//쓰기 가능 트랜잭션 / 읽기 전용도 가능 ( 기본값은 false )
