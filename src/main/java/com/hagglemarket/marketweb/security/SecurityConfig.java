@@ -42,14 +42,16 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/products").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/products/{postId}/like").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/products/{postId}/like/me").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/products/detail/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/uploads/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET,"/api/categories").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/categories/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/products").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/products/images").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/products/{postId}/like").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/api/products/**").authenticated()
                         .requestMatchers(HttpMethod.OPTIONS,"/**", "/js/**", "/images/**","/uploads/**").permitAll()
                         .anyRequest().authenticated()
