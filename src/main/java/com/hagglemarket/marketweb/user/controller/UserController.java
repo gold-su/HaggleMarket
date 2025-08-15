@@ -88,7 +88,7 @@ public class UserController {
 
         // JWT 토큰에서 userId 추출
         //jwtUtil.extractUserId()를 통해 JWT 디코딩해서 사용자 ID 꺼냄
-        String userId = jwtUtil.extractUserId(token.replace("Bearer","")); //"Bearer " 접두어를 제거 → 실제 토큰만 남김
+        String userId = extractUserId(token); //"Bearer " 접두어를 제거 → 실제 토큰만 남김
 
         //DB에서 해당 userId를 가진 사용자 정보 조회, 없으면 예외 던지거나 오류 처리도 가능
         User user = userService.findByUserId(userId);
@@ -115,7 +115,7 @@ public class UserController {
             @RequestBody UserUpdateDTO updateDTO) {
 
         //JWT에서 userId 추출
-        String userId = jwtUtil.extractUserId(token.replace("Bearer ",""));
+        String userId = extractUserId(token);
 
         // DB에서 userId로 사용자를 찾아서 사용자 정보 수정 및 새 토큰 발급
         LoginResponseDTO response = userService.updateUserInfo(userId, updateDTO);
@@ -130,7 +130,7 @@ public class UserController {
             @RequestBody PasswordChangeDTO dto) {
 
         //JWT에서 userId 추출
-        String userId = jwtUtil.extractUserId(token.replace("Bearer ","").trim());
+        String userId = extractUserId(token);
 
         //비밀번호 변경
         userService.changePassword(userId, dto.getCurrentPassword(), dto.getNewPassword());
@@ -176,9 +176,7 @@ public class UserController {
         String password = payload.get("password");
 
         //토큰에서 사용자 ID 가져오기
-        String token = request.getHeader("Authorization").replace("Bearer ","").trim(); //헤더에서 JWT 토큰 추출
-        String userId = jwtUtil.extractUserId(token); //JWT에서 사용자 ID 추출
-
+        String userId = extractUserId(request.getHeader("Authorization")); //JWT에서 사용자 ID 추출
         //비밀번호 확인
         boolean isCorrect = userService.checkPassword(userId, password);
         if(isCorrect){
@@ -213,5 +211,10 @@ public class UserController {
         //해당객체를 사용하여 닉네임을 찾아옴
         Map<String,String> res = Map.of("nickName",user.getNickName());
         return ResponseEntity.ok(res);
+    }
+
+    //토큰에서 사용자 ID 추출 (재사용을 위한 헬퍼 메서드)
+    private String extractUserId(String token){
+        return jwtUtil.extractUserId(token.replace("Bearer ", "").trim());
     }
 }

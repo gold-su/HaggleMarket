@@ -1,6 +1,5 @@
 package com.hagglemarket.marketweb.post.dto;
 
-import com.hagglemarket.marketweb.post.entity.Post;
 import com.hagglemarket.marketweb.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +29,8 @@ public class PostDetailResponse {
     private String categoryPath;
     private List<String> images;
     private SellerInfo seller;
+    private boolean likedByMe;
+    private int likeCount;
 
     @Getter
     public static class SellerInfo {

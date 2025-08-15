@@ -16,4 +16,6 @@ public class PostCardDto {
     private Post.ProductStatus status;
     private boolean liked;
     private List<String> tags;
+    private boolean likedByMe;
+    private int likeCount;
 }
