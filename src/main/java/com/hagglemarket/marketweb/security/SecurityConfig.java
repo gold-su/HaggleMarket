@@ -28,32 +28,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors()
-                .and()
+                .cors().and()
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/login").permitAll()
-                        .requestMatchers(
-                                "/api/users/login",
-                                "/api/users/login/**",
-                                "/api/users/signup",
-                                "/api/users/upload"
-                        ).permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/products").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/products/{postId}/like").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/products/{postId}/like/me").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/products/detail/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/categories").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // 공개 API
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/detail/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+
+                        // 좋아요(B안): 모두 인증 필요
+                        .requestMatchers(HttpMethod.GET,    "/api/products/{postId}/like/me").authenticated()
+                        .requestMatchers(HttpMethod.POST,   "/api/products/{postId}/like").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/{postId}/like").authenticated()
+
+                        // 기타 인증 필요
                         .requestMatchers(HttpMethod.POST, "/api/products").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/products/images").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/products/{postId}/like").authenticated()
-                        .requestMatchers(HttpMethod.PUT,"/api/products/**").authenticated()
-                        .requestMatchers(HttpMethod.OPTIONS,"/**", "/js/**", "/images/**","/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT,  "/api/products/**").authenticated()
+
+                        // 로그인/회원가입 공개
+                        .requestMatchers("/users/login").permitAll()
+                        .requestMatchers("/api/users/login", "/api/users/login/**",
+                                "/api/users/signup", "/api/users/upload").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
