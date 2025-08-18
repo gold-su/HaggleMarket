@@ -23,8 +23,8 @@ public class AuctionImageService {
 
     @Transactional //이미지 저장 중 예외가 생기면 롤백 되도록 명시
     //경매 상품 이미지들을 DB에 저장하는 메서드
-    // MultipartFile files = 프론트에서 업로드한 이미지들
-    // AuctionPost auctionPost = 어떤 경매 상품의 이미지인지 연결하려고 받는 매개변수
+    //MultipartFile files = 프론트에서 업로드한 이미지들
+    //AuctionPost auctionPost = 어떤 경매 상품의 이미지인지 연결하려고 받는 매개변수
     //리턴값: 저장이 완료된 AuctionImage 객체들의 리스트를 반환. 나중에 다시 활용 & 응답에 포함 가능
     public List<AuctionImageResponseDto.ImageInfo> saveImages(AuctionImageRequestDto req, AuctionPost auctionPost) {
         List<MultipartFile> files = req.getImages(); //업로드된 파일 목록
