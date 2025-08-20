@@ -7,6 +7,7 @@ import com.hagglemarket.marketweb.post.entity.Post;
 import com.hagglemarket.marketweb.post.entity.PostImage;
 import com.hagglemarket.marketweb.post.repository.PostImageRepository;
 import com.hagglemarket.marketweb.post.repository.PostRepository;
+import com.hagglemarket.marketweb.postlike.repository.PostLikeRepository;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +15,6 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +35,7 @@ public class PostService {
     private final PostImageRepository postImageRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final PostLikeRepository postLikeRepository;
 
     public PostResponseDto createPost(PostRequestDto dto) {
         int userNo = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserNo();
@@ -109,15 +110,25 @@ public class PostService {
         });
     }
 
+    @Transactional(readOnly = true)
     public PostDetailResponse getPostDetail(int postId, Integer viewerUserNo) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다."));
 
         boolean isMine = viewerUserNo != null && post.getUser().getUserNo() == viewerUserNo;
 
+        // === 찜 관련 ===
+        boolean likedByMe = false;
+        int likeCount = (int) postLikeRepository.countByPostId(postId); // ✅ postId 기반
+
+        if (viewerUserNo != null) {
+            likedByMe = postLikeRepository.existsByUserNoAndPostId(viewerUserNo, postId); // ✅ userNo, postId 기반
+        }
+
+        // === 이미지 목록 ===
         List<String> imageUrls = postImageRepository.findImageUrlsByPostId(postId);
 
-        // === 카테고리 경로 문자열 만들기 ===
+        // === 카테고리 경로 ===
         String categoryPath = null;
         if (post.getCategoryId() != null) {
             Category small = categoryRepository.findById(post.getCategoryId())
@@ -127,7 +138,6 @@ public class PostService {
             categoryPath = large.getName() + " > " + middle.getName() + " > " + small.getName();
         }
 
-        // PostDetailResponse.builder() 직접 사용
         return PostDetailResponse.builder()
                 .postId(post.getPostId())
                 .title(post.getTitle())
@@ -142,9 +152,11 @@ public class PostService {
                 .status(post.getStatus().name())
                 .isMine(isMine)
                 .categoryId(post.getCategoryId())
-                .categoryPath(categoryPath) // 여기서 직접 세팅
+                .categoryPath(categoryPath)
                 .images(imageUrls)
                 .seller(new PostDetailResponse.SellerInfo(post.getUser()))
+                .likedByMe(likedByMe)
+                .likeCount(likeCount)
                 .build();
     }
 

@@ -22,7 +22,6 @@ public class PostLikeService {
             postLikeRepository.save(PostLike.builder().userNo(userNo).postId(postId).build());
             postRepository.incrementLikeCount(postId);
         }catch (DataIntegrityViolationException e){
-
         }
     }
 
