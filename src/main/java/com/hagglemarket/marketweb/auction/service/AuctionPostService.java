@@ -10,6 +10,7 @@ import com.hagglemarket.marketweb.auction.repository.AuctionPostRepository;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.ResourceTransactionManager;
@@ -104,6 +105,7 @@ public class AuctionPostService {
                 .content(post.getContent())
                 .startPrice(post.getStartCost())
                 .currentPrice(post.getCurrentCost())
+                .buyoutPrice(post.getBuyoutCost())
                 .startTime(post.getStartTime())
                 .endTime(post.getEndTime())
                 .imagesUrls(imageUrls)
@@ -112,5 +114,77 @@ public class AuctionPostService {
                 .hit(post.getHit())
                 .bidCount(post.getBidCount())
                 .build();
+    }
+
+    @Transactional
+    public AuctionPostResponse updateAuctionPost(int auctionId,AuctionPostRequest req, Integer userNo) {
+        AuctionPost post = auctionPostRepository.findById(auctionId)
+                .orElseThrow(()->new IllegalArgumentException("해당 경매 상품이 존재하지 않습니다."));
+
+        // 1) 권한 체크: 본인만 수정 가능
+        if (post.getSeller() == null || post.getSeller().getUserNo() != userNo) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "본인 게시글만 수정할 수 있습니다.");
+        }
+
+        // 2) 상태/입찰 체크: 입찰자 있으면 수정 불가
+        if (post.getBidCount() > 0) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "입찰자가 있어 수정할 수 없습니다.");
+        }
+
+        // (선택) READY 상태가 아닐 때도 수정 불가로 고정
+        if (post.getStatus() != com.hagglemarket.marketweb.auction.entity.AuctionStatus.READY) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "시작되었거나 종료된 경매는 수정할 수 없습니다.");
+        }
+
+        // 3) 즉시구매가 검증: 현재가보다 낮게 설정 금지
+        if (req.getBuyoutCost() != null) {
+            if (req.getBuyoutCost() < post.getCurrentCost()) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_REQUEST, "즉시구매가는 현재가보다 낮을 수 없습니다.");
+            }
+        }
+
+        // 4) 시간 검증 (둘 다 들어온 경우에만 검사)
+        // startTime, endTime은 READY 상태에서만 바꾸는 걸 권장
+        var newStart = req.getStartTime() != null ? req.getStartTime() : post.getStartTime();
+        var newEnd = req.getEndTime() != null ? req.getEndTime()       : post.getEndTime();
+
+        if(newStart != null && newEnd != null && !newStart.isBefore(newEnd)){
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "시작 시간은 종료 시간보다 이전이어야 합니다."
+            );
+        }
+
+        // 과거 시간 검증(선택) : 이제 시작 전인 경매만 허용
+        var now = java.time.LocalDateTime.now();
+        if(newStart != null && newStart.isBefore(now)){
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "시작 시간은 현재 이후여야 합니다."
+            );
+        }
+        if(newEnd != null && newEnd.isBefore(now)){
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "종료 시간은 현재 이후여야 합니다."
+            );
+        }
+
+        // 5) 변경 적용 (null은 무시)
+        if(req.getTitle() != null) post.setTitle(req.getTitle());
+        if(req.getContent() != null) post.setContent(req.getContent());
+        if (req.getBuyoutCost() != null || (req.getBuyoutCost() == null)) {
+            post.setBuyoutCost(req.getBuyoutCost()); // null 이면 ‘즉시구매 불가’
+        }
+        if (req.getStartTime() != null) post.setStartTime(newStart);
+        if (req.getEndTime() != null)   post.setEndTime(newEnd);
+
+        post.setUpdatedAt(java.time.LocalDateTime.now());
+
+        auctionPostRepository.save(post);
+
+        return new AuctionPostResponse(post.getAuctionId(), "경매 상품이 수정되었습니다.");
+
     }
 }

@@ -15,6 +15,7 @@ public class AuctionDetailDTO {
     private String content;
     private Integer startPrice;
     private Integer currentPrice;
+    private Integer buyoutPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
