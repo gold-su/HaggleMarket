@@ -1,6 +1,7 @@
 package com.hagglemarket.marketweb.bid.service;
 
 import com.hagglemarket.marketweb.auction.entity.AuctionPost;
+import com.hagglemarket.marketweb.auction.entity.AuctionStatus;
 import com.hagglemarket.marketweb.auction.repository.AuctionPostRepository;
 import com.hagglemarket.marketweb.bid.dto.BidRequestDTO;
 import com.hagglemarket.marketweb.bid.dto.BidResponseDTO;
@@ -24,54 +25,122 @@ public class BidService {
 
     @Transactional
     public BidResponseDTO placeBid(final BidRequestDTO request) {
-        //1. 경매글 조회
+
+        int bidderUserNo = request.getUserNo();
+
+        //경매글 조회
         AuctionPost auction = auctionPostRepository.findById(request.getAuctionId())
                 .orElseThrow(() -> new IllegalArgumentException("경매 상품이 존재하지 않습니다."));
 
-        //2. 경매 종료 여부 확인
-        if(auction.getEndTime().isBefore(LocalDateTime.now())){  //현재 시간이 EndTime 보다 이후 라면
-            return BidResponseDTO.builder()                      //경매 종료 DTO 반환
-                    .success(false)                              //성공 여부 실패
-                    .message("경매가 종료되었습니다.")               //메시지 전달
-                    .currentHighestBid(auction.getCurrentCost()) //현재 최고 입찰가 표시
+        //시간 검증
+        var now = java.time.LocalDateTime.now();
+        if(now.isBefore(auction.getStartTime())){
+            return BidResponseDTO.builder()
+                    .success(false).message("경매가 아직 시작되지 않았습니다.")
+                    .currentHighestBid(auction.getCurrentCost())
+                    .build();
+        }
+        if(now.isAfter(auction.getEndTime())){
+            return BidResponseDTO.builder()
+                    .success(false).message("경매가 종료되었습니다.")
+                    .currentHighestBid(auction.getCurrentCost())
+                    .build();
+        }
+        //본인 물건 입찰 방지
+        if(auction.getSeller().getUserNo() == bidderUserNo){
+            return BidResponseDTO.builder()
+                    .success(false).message("본인 상품에는 입찰할 수 없습니다.")
+                    .currentHighestBid(auction.getCurrentCost())
                     .build();
         }
 
-        //3. 입찰 금액이 현재가보다 높은지 확인
-        if(request.getBidAmount() <= auction.getCurrentCost()){  //현재 가격보다 입찰 금액이 높은지 비교
-            return BidResponseDTO.builder()                      //경매 종료 DTO 반환
-                    .success(false)                              //성공 여부 실패
-                    .message("입찰 금액은 현재가보다 높아야 합니다.")  //메시지 전달
-                    .currentHighestBid(auction.getCurrentCost()) //현재 최고 입찰가 표시
+        int current = auction.getCurrentCost();
+        int amount  = request.getBidAmount();
+
+
+        if(amount <= current){
+            return BidResponseDTO.builder()
+                    .success(false).message("입찰 금액은 현재가보다 높아야 합니다.")
+                    .currentHighestBid(auction.getCurrentCost())
                     .build();
         }
 
-        //4. 입찰자 조회
-        User bidder = userRepository.findByUserNo(request.getUserNo())
+
+        //입찰자 조회
+        User bidder = userRepository.findByUserNo(bidderUserNo)
                 .orElseThrow(() -> new IllegalArgumentException("입찰 유저가 존재하지 않습니다."));
 
-        //5. 입찰 기록 저장 (누가, 언제, 얼마로 입찰했는지 입찰 이력 기록)
+        //입찰 기록 저장 (누가, 언제, 얼마로 입찰했는지 입찰 이력 기록)
         BidHistory bid = new BidHistory(); //bid를 BidHistory 엔티티로 생성
         bid.setAuctionPost(auction);                //입찰 경매 상품 저장
         bid.setBidder(bidder);                      //입찰자 저장
-        bid.setBidAmount(request.getBidAmount());   //입찰 금액 저장
-        bid.setBidTime(LocalDateTime.now());        //입찰 현재 시간 적용
+        bid.setBidAmount(amount);                   //입찰 금액
+        bid.setBidTime(now);                        //입찰 현재 시간 적용
 
         bidHistoryRepository.save(bid);             //JpaRepository 상속하였으니 불러와서 바로 save로 저장
 
-        //6. 경매글의 현재가/낙찰자/입찰 수 갱신 (현재가, 낙찰자, 입찰 수 등의 경매 글 상태 갱신)
-        auction.setCurrentCost(request.getBidAmount()); //현재가 갱신
-        auction.setWinner(bidder);                      //낙찰자 갱신
-        auction.setBidCount(auction.getBidCount() + 1); //입찰 수 +1 갱신
+        //경매글의 현재가/낙찰자/입찰 수 갱신 (현재가, 낙찰자, 입찰 수 등의 경매 글 상태 갱신)
+        auction.setCurrentCost(amount);                 //현재가 갱신
+        auction.setWinner(bidder);                      //숫자 필드에 일관 저장 낙찰자 갱신
+        auction.setBidCount(auction.getBidCount() + 1); //입찰 수 +1
+        auction.setUpdatedAt(now);
         auctionPostRepository.save(auction);            //후 저장
 
-        //7. 성공 응답 반환
+        //성공 응답 반환
         return BidResponseDTO.builder()
                 .success(true)
                 .message("입찰이 성공적으로 완료되었습니다.")
-                .currentHighestBid(request.getBidAmount())
+                .currentHighestBid(amount)
                 .build();
 
     }
+    @Transactional
+    public BidResponseDTO  buyout(final int buyerUserNo, final int auctionId) {
+        AuctionPost auction = auctionPostRepository.findById(auctionId)
+                .orElseThrow(() -> new IllegalArgumentException("경매 상품이 존재하지 않습니다."));
+        var now = java.time.LocalDateTime.now();
+        if (now.isBefore(auction.getStartTime())) {
+            return BidResponseDTO.builder()
+                    .success(false).message("경매가 아직 시작되지 않았습니다.")
+                    .currentHighestBid(auction.getCurrentCost())
+                    .build();
+        }
+        if (now.isAfter(auction.getEndTime())) {
+            return BidResponseDTO.builder()
+                    .success(false).message("경매가 종료되었습니다.")
+                    .currentHighestBid(auction.getCurrentCost())
+                    .build();
+        }
+        if (auction.getBuyoutCost() == null) {
+            return BidResponseDTO.builder()
+                    .success(false).message("즉시구매가가 설정되지 않은 상품입니다.")
+                    .currentHighestBid(auction.getCurrentCost())
+                    .build();
+        }
+        if (auction.getSeller().getUserNo() == buyerUserNo) {
+            return BidResponseDTO.builder()
+                    .success(false).message("본인 상품은 구매할 수 없습니다.")
+                    .currentHighestBid(auction.getCurrentCost())
+                    .build();
+        }
 
+
+        User buyer = userRepository.findByUserNo(buyerUserNo)
+                .orElseThrow(() -> new IllegalArgumentException("구매 유저가 존재하지 않습니다."));
+
+
+        //종료 처리
+        auction.setCurrentCost(auction.getBuyoutCost());
+        auction.setWinner(buyer);
+        auction.setEndTime(now);
+        auction.setStatus(AuctionStatus.ENDED);
+        auction.setUpdatedAt(now);
+        auctionPostRepository.save(auction);
+
+        return BidResponseDTO.builder()
+                .success(true)
+                .message("즉시구매가 완료되었습니다.")
+                .currentHighestBid(auction.getBuyoutCost())
+                .build();
+    }
 }

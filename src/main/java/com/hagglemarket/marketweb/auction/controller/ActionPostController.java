@@ -6,13 +6,17 @@ import com.hagglemarket.marketweb.auction.dto.AuctionPostRequest;
 import com.hagglemarket.marketweb.auction.dto.AuctionPostResponse;
 import com.hagglemarket.marketweb.auction.entity.AuctionPost;
 import com.hagglemarket.marketweb.auction.service.AuctionPostService;
+import com.hagglemarket.marketweb.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController //REST API 컨트롤러
 @RequestMapping("/api/auction")
@@ -25,8 +29,14 @@ public class ActionPostController {
     @PostMapping("/create")
     public ResponseEntity<AuctionPostResponse> createAuctionPost(
             @RequestBody @Valid AuctionPostRequest request,
-            @RequestParam("userNo") Integer userNo //URL의 쿼리스 스트링에서 값을 꺼내는 방식 : RequestParam
+            @AuthenticationPrincipal CustomUserDetails user // Spring Security
     ) {
+        if (user == null) {
+            // 토큰 안 붙었거나, 경로가 인증 요구가 아닌 경우
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        int userNo = user.getUserNo();
         //서비스 호출
         AuctionPostResponse response = auctionPostService.createAuctionPost(request, userNo);
 
@@ -48,4 +58,5 @@ public class ActionPostController {
         AuctionDetailDTO detail = auctionPostService.getAuctionDetail(auctionId); //똑같이 서비스에서 디테일에 auctionId 값을 받아와서 detail로 저장
         return ResponseEntity.ok(detail); //저장된 디테일 반환
     }
+
 }

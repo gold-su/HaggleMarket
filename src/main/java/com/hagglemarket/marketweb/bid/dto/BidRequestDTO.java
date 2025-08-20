@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BidRequestDTO {
-    private int auctionId; //어떤 경매글에 입찰할 건지
-    private int userNo;    //누가 입찰하는지 (회원번호)
-    private int bidAmount; //얼마로 입찰할 건지
+    private int auctionId;   // 경매글 ID
+    private int bidAmount;   // 입찰가
+    private Integer userNo;  // 입찰자(임시: STOMP에서 payload로 받음) - JWT붙일 땐 제거 가능
 }

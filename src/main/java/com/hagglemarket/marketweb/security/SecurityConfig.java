@@ -41,8 +41,14 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         //로그인/회원가입/파일업로드/경매 공개 API 등 허용
                         .requestMatchers("/users/login").permitAll()
-                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/signup", "/api/users/upload","/api/auction/**"
-                        , "/api/products").permitAll()
+                        .requestMatchers("/api/users/login", "/api/users/login/**", "/api/users/signup").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/products/**",
+                                "/api/auction/list",
+                                "/api/auction/**",          // 상세/리스트
+                                "/api/auction/images/**"    // 이미지 바이트
+                        ).permitAll()
+                        .requestMatchers("/api/auth/me").permitAll() // 디버깅용 공개
                         //OPTIONS 프리플라이트 허용 + 정적 리소스
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/js/**", "/images/**").permitAll()

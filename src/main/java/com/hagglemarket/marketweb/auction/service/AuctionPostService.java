@@ -88,8 +88,9 @@ public class AuctionPostService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 경매 상품이 존재하지 않습니다.")); //없으면 예외 던져서 400 에러 유도
 
         //경매 게시글에 연결된 이미지 리스트를 꺼내서 각각의 이미지에서 imageName만 뽑아낸 뒤 리스트로 만듦.
-        List<String> imageNames = post.getImages().stream()
-                .map(AuctionImage::getImageName)
+        List<String> imageUrls = post.getImages().stream()
+                .sorted(Comparator.comparingInt(AuctionImage::getSortOrder))
+                .map(img -> "/api/auction/images/" + img.getImageId())
                 .toList();
 
         //getAuctionDetail() 호출 시 +1
@@ -105,7 +106,7 @@ public class AuctionPostService {
                 .currentPrice(post.getCurrentCost())
                 .startTime(post.getStartTime())
                 .endTime(post.getEndTime())
-                .imagesName(imageNames)
+                .imagesUrls(imageUrls)
                 .sellerNickname(post.getSeller().getNickName())
                 .winnerNickname(post.getWinner() == null ? null : post.getWinner().getNickName()) //null일 수 있음
                 .hit(post.getHit())

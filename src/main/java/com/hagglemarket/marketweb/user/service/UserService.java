@@ -69,7 +69,7 @@ public class UserService {
         // Entity로 변환 후 저장
         User user = User.builder()
                 .userId(dto.getUserId())
-                .password(dto.getPassword())
+                .password(encodedPassword)
                 .userName(dto.getUserName())
                 .nickName(dto.getNickName())
                 .phoneNumber(dto.getPhoneNumber())
