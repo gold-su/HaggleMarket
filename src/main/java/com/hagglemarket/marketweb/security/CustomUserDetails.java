@@ -3,10 +3,11 @@ package com.hagglemarket.marketweb.security;
 import com.hagglemarket.marketweb.user.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 @Getter
 public class CustomUserDetails implements UserDetails {
@@ -24,7 +25,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // 권한 안 쓰니까 빈 리스트 리턴!
-        return Collections.emptyList();
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override

@@ -14,9 +14,17 @@ public class PostResponseDto {
     private String title;
     private int cost;
     private String content;
+    private int categoryId;
+
+    private String productStatus;
+    private boolean negotiable;
+    private boolean swapping;
+    private boolean deliveryFee;
+
     private Post.Poststatus status;
     private int hit;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
     private List<String> imageUrls;
 }

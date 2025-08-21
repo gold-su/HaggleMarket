@@ -2,6 +2,7 @@ package com.hagglemarket.marketweb.auction.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,7 +39,8 @@ public class AuctionImage {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
 }

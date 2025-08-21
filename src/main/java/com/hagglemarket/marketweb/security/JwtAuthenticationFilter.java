@@ -5,7 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,15 +16,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+@Slf4j
 
+@RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private UserDetailsService userDetailsService;  // 사용자 DB 조회용
+    private final UserDetailsService userDetailsService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,9 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwtToken = authHeader.substring(7);
+
+            log.info("토큰 확인: {}", jwtToken);
+
             try {
                 userid = jwtUtil.validateToken(jwtToken);
+
+                log.info("JWT에서 꺼낸 유저명: {}", userid);
             } catch (Exception e) {
+                log.error("JWT 검증 실패: {}", e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
@@ -49,6 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (userid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userid);
 
+            log.info("UserDetails에서 불러온 사용자: {}", userDetails.getUsername());
+
             // 토큰 유효성 재검사 (여기서는 단순히 username 비교만 예시)
             if (userid.equals(userDetails.getUsername())) {
                 UsernamePasswordAuthenticationToken authToken =
@@ -57,6 +66,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                log.info("SecurityContext에 인증 정보 저장 완료");
             }
         }
 

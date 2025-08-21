@@ -69,7 +69,7 @@ public class UserService {
         // Entity로 변환 후 저장
         User user = User.builder()
                 .userId(dto.getUserId())
-                .password(dto.getPassword())
+                .password(encodedPassword)
                 .userName(dto.getUserName())
                 .nickName(dto.getNickName())
                 .phoneNumber(dto.getPhoneNumber())
@@ -172,7 +172,7 @@ public class UserService {
         user.setImageURL(dto.getImageURL());
 
         //  수정 후 새 토큰 발급
-        String newToken = jwtUtil.generateToken(user.getUserId());
+        String newToken = jwtUtil.generateToken(user.getUserId(),user.getUserNo());
 
         //  새 토큰과 새 닉네임 반환
         return new LoginResponseDTO(user.getUserId(), newToken, user.getNickName());

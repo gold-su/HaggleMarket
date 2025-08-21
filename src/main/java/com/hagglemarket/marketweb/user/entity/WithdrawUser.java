@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder //빌더 패턴으로 객체 생성
 @NoArgsConstructor(access = AccessLevel.PROTECTED) //기본 생성자 생성 (보안을 위한 protected)
 @AllArgsConstructor //모든 필드를 매개변수로 받는 생성자 생성
-@Table(name = "withdrawusers")
+@Table(name = "withdraw_users")
 public class WithdrawUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

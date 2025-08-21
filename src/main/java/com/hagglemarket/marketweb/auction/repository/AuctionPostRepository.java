@@ -25,4 +25,7 @@ public interface AuctionPostRepository extends JpaRepository<AuctionPost, Intege
     List<AuctionListDTO> findAllWithThumbnail();
 
     List<AuctionPost> findByEndTimeBeforeAndStatus(LocalDateTime now, AuctionStatus status);
+
+    //DB 조회용 메서드
+    List<AuctionPost> findByStartTimeBeforeAndStatus(LocalDateTime now, AuctionStatus status);
 }

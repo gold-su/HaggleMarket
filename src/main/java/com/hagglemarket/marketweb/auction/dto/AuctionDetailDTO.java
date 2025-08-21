@@ -15,9 +15,12 @@ public class AuctionDetailDTO {
     private String content;
     private Integer startPrice;
     private Integer currentPrice;
+    private Integer buyoutPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private List<String> imagesName; //이미지
+
+    private List<String> imagesUrls; //이미지
+
     private String sellerNickname;
     private String winnerNickname;
     private int hit;        //조회수
