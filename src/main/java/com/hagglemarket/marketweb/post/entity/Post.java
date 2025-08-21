@@ -1,5 +1,6 @@
 package com.hagglemarket.marketweb.post.entity;
 
+import com.hagglemarket.marketweb.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,20 +21,45 @@ public class Post {
     @Column(name = "post_id")
     private int postId;
 
-    @Column(name="user_no",nullable = false)
-    private int user_no;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_no", nullable = false)
+    private User user;
 
     @Column(name="title",nullable = false,length = 50)
     private String title;
 
+    public enum ProductStatus {
+        NEW, USED_LIKE_NEW, USED, DAMAGED
+    }
+
+    @Column(name="category_id",nullable = false)
+    private Integer categoryId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_status", nullable = false)
+    private ProductStatus productStatus;
+
     @Column(name="cost",nullable = false)
     private int cost;
+
+    @Column(name = "negotiable", nullable = false)
+    private boolean negotiable;
+
+    @Column(name = "swapping", nullable = false)
+    private boolean swapping;
+
+    @Column(name = "delivery_fee", nullable = false)
+    private boolean deliveryFee;
 
     @Column(name = "content",nullable = false)
     private String content;
 
     @Column(name = "hit",nullable = false)
     private int hit;
+
+    public void increaseHit() {
+        this.hit += 1;
+    }
 
     @Column(name = "created_at",updatable = false,insertable = false)
     private LocalDateTime createdAt;
@@ -52,6 +78,7 @@ public class Post {
         DELETED
     }
 
+    @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images = new ArrayList<>();
 }
