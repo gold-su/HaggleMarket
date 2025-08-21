@@ -5,7 +5,166 @@ use hagglemarket;
 */
 
 #일단 user 테이블만 생성 / 다른 기능 구현할 때 차차 생성
+create table category
+(
+    id        int auto_increment
+        primary key,
+    name      varchar(50) not null,
+    parent_id int         null,
+    constraint category_ibfk_1
+        foreign key (parent_id) references category (id)
+);
 
+create index parent_id
+    on category (parent_id);
+
+create table users
+(
+    user_no      int auto_increment
+        primary key,
+    user_id      varchar(20)  not null,
+    user_name    varchar(10)  not null,
+    password     varchar(255) not null,
+    phone_number varchar(11)  not null,
+    nick_name    varchar(15)  not null,
+    address      varchar(30)  not null,
+    email        varchar(50)  not null,
+    image_url    text         null,
+    created_at   datetime     null,
+    status       varchar(20)  null,
+    rating       decimal      null,
+    road_rating  decimal      null,
+    constraint `unique`
+        unique (user_id, email, phone_number)
+);
+
+create table auction_posts
+(
+    auction_id     int auto_increment
+        primary key,
+    user_no        int                                                                       not null,
+    category_id    int                                                                       null,
+    title          varchar(50)                                                               not null,
+    content        text                                                                      not null,
+    start_cost     int                                                                       not null,
+    current_cost   int                                                                       not null,
+    buyout_cost    int                                                                       null,
+    start_time     datetime                                                                  not null,
+    end_time       datetime                                                                  not null,
+    winner_user_no int                                                                       null,
+    hit            int                                             default 0                 not null,
+    bid_count      int                                             default 0                 not null,
+    created_at     datetime                                        default CURRENT_TIMESTAMP null,
+    updated_at     datetime                                        default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    status         enum ('READY', 'ONGOING', 'ENDED', 'CANCELLED') default 'READY'           null,
+    like_count     int                                             default 0                 not null,
+    constraint fk_auction_posts_user
+        foreign key (user_no) references users (user_no),
+    constraint fk_auction_posts_winner
+        foreign key (winner_user_no) references users (user_no)
+);
+
+create table auction_post_images
+(
+    image_id   int auto_increment
+        primary key,
+    auction_id int                                not null,
+    image_data mediumblob                         not null,
+    image_name varchar(255)                       not null,
+    image_type varchar(50)                        not null,
+    sort_order int                                not null,
+    created_at datetime default CURRENT_TIMESTAMP null,
+    constraint fk_auction_post_images
+        foreign key (auction_id) references auction_posts (auction_id)
+            on delete cascade
+);
+
+create table bids
+(
+    bid_id         int auto_increment
+        primary key,
+    auction_id     int                                not null,
+    bidder_user_no int                                not null,
+    bid_amount     int                                not null,
+    bid_time       datetime default CURRENT_TIMESTAMP null,
+    constraint fk_bids_auction_posts
+        foreign key (auction_id) references auction_posts (auction_id)
+            on delete cascade,
+    constraint fk_bids_user
+        foreign key (bidder_user_no) references users (user_no)
+            on delete cascade
+);
+
+create table posts
+(
+    post_id        int auto_increment
+        primary key,
+    user_no        int                                not null,
+    title          varchar(50)                        not null,
+    cost           int                                not null,
+    content        text                               not null,
+    hit            int      default 0                 not null,
+    created_at     datetime default (now())           null,
+    updated_at     datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    status         varchar(20)                        null,
+    delivery_fee   tinyint(1)                         not null,
+    swapping       tinyint(1)                         not null,
+    category_id    int                                null,
+    negotiable     tinyint(1)                         not null,
+    product_status varchar(20)                        not null,
+    constraint posts_users_user_no_fk
+        foreign key (user_no) references users (user_no)
+);
+
+create table post_images
+(
+    image_no   int auto_increment
+        primary key,
+    post_id    int          not null,
+    image_url  varchar(255) not null,
+    sort_order int          not null,
+    constraint post_images_posts_post_id_fk
+        foreign key (post_id) references posts (post_id)
+);
+
+create table post_like
+(
+    id         int auto_increment
+        primary key,
+    user_no    int                                not null,
+    post_id    int                                not null,
+    created_at datetime default CURRENT_TIMESTAMP null,
+    constraint uq_user_post
+        unique (user_no, post_id),
+    constraint fk_like_post
+        foreign key (post_id) references posts (post_id),
+    constraint fk_like_user
+        foreign key (user_no) references users (user_no)
+);
+
+create index idx_post
+    on post_like (post_id);
+
+create index idx_user
+    on post_like (user_no);
+
+create table withdraw_users
+(
+    no          int auto_increment
+        primary key,
+    user_id     varchar(20)                        not null,
+    user_email  varchar(50)                        null,
+    withdraw_at datetime default CURRENT_TIMESTAMP not null
+);
+
+
+
+
+
+
+
+밑은 예전꺼
+---------------------------------------------------------------------
 use hagglemarket;
 
 create table users
