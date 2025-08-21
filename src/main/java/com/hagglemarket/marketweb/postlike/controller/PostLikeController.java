@@ -1,6 +1,7 @@
 package com.hagglemarket.marketweb.postlike.controller;
 
 
+import com.hagglemarket.marketweb.postlike.dto.LikeItemDto;
 import com.hagglemarket.marketweb.postlike.service.PostLikeService;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,5 +37,10 @@ public class PostLikeController {
     @PreAuthorize("isAuthenticated()")
     public Map<String,Boolean> myLike(@PathVariable int postId,@AuthenticationPrincipal CustomUserDetails user){
         return Map.of("liked",postLikeService.isLiked(user.getUserNo(), postId));
+    }
+
+    @GetMapping("/{postId}/like/sidebar")
+    public List<LikeItemDto> getSidebarLikes(@RequestParam int userNo) {
+        return postLikeService.getMyLikes(userNo);
     }
 }

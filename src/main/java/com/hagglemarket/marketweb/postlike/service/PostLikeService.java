@@ -1,12 +1,15 @@
 package com.hagglemarket.marketweb.postlike.service;
 
 import com.hagglemarket.marketweb.post.repository.PostRepository;
+import com.hagglemarket.marketweb.postlike.dto.LikeItemDto;
 import com.hagglemarket.marketweb.postlike.entity.PostLike;
 import com.hagglemarket.marketweb.postlike.repository.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,5 +39,9 @@ public class PostLikeService {
     @Transactional(readOnly = true)
     public boolean isLiked(int userNo, int postId) {
         return postLikeRepository.existsByUserNoAndPostId(userNo, postId);
+    }
+
+    public List<LikeItemDto> getMyLikes(int userNo) {
+        return postLikeRepository.findMyLikes(userNo);
     }
 }

@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/detail/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/likes/sidebar").permitAll()
 
                         // 좋아요(B안): 모두 인증 필요
                         .requestMatchers(HttpMethod.GET,    "/api/products/{postId}/like/me").authenticated()
