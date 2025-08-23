@@ -1,7 +1,6 @@
 package com.hagglemarket.marketweb.bid.repository;
 
 import com.hagglemarket.marketweb.auction.entity.AuctionPost;
-import com.hagglemarket.marketweb.bid.entity.AuctionBidCount;
 import com.hagglemarket.marketweb.bid.entity.BidHistory;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -49,5 +48,7 @@ public interface BidHistoryRepository extends JpaRepository<BidHistory, Integer>
     """
     )
     Page<AuctionBidCount> findHotAuctionIds(Pageable pageable);
+
+    long countByAuctionPost_AuctionId(int auctionId);
 
 }
