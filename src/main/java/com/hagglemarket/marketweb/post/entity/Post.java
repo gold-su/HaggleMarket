@@ -29,7 +29,7 @@ public class Post {
     private String title;
 
     public enum ProductStatus {
-        NEW, USED_LIKE_NEW, USED, DAMAGED
+        NEW, USED_LIKE_NEW, USED_GOOD, USED, DAMAGED
     }
 
     @Column(name="category_id",nullable = false)

@@ -3,7 +3,6 @@ package com.hagglemarket.marketweb.post.controller;
 import com.hagglemarket.marketweb.post.dto.*;
 import com.hagglemarket.marketweb.post.service.PostService;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
-import com.hagglemarket.marketweb.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
