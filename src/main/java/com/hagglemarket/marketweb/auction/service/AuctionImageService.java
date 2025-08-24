@@ -69,7 +69,7 @@ public class AuctionImageService {
                 results.add(
                         AuctionImageResponseDto.ImageInfo.builder()
                                 .imageId(saved.getImageId())
-                                .imageUrl("/api/auction/images/" + saved.getImageId()) //rest api로 이미지 다운로드 할 수 있는 엔드포인트 경로
+                                .imageUrl(saved.getImageUrl()) // 이미지 조회 URL은 imageId 기반으로 계산
                                 .imageName(saved.getImageName())
                                 .imageType(saved.getImageType())
                                 .sortOrder(saved.getSortOrder())

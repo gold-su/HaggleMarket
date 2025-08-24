@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.ResourceTransactionManager;
 
 import java.util.Comparator;
 import java.util.List;
@@ -57,18 +56,12 @@ public class AuctionPostService {
         List<AuctionPost> posts = auctionPostRepository.findAll(); //필요한 조회 쿼리
 
         return posts.stream().map(post -> {
-            String thumbnailUrl = null;
-
-            //첫 번째 이미지가 있다면 URL 생성
-            if(!post.getImages().isEmpty()) {
-                int firstImageId = post.getImages()
-                        .stream()
-                        .sorted(Comparator.comparingInt(AuctionImage::getSortOrder))
-                        .findFirst()
-                        .get()
-                        .getImageId();
-                thumbnailUrl = "/api/auction/images/" + firstImageId;
-            }
+            // 첫 번째 이미지를 찾아 그 URL을 사용. 이미지가 없다면 null 반환
+            String thumbnailUrl = post.getImages().stream()
+                    .sorted(Comparator.comparingInt(AuctionImage::getSortOrder))
+                    .findFirst()
+                    .map(AuctionImage::getImageUrl)
+                    .orElse(null);
 
             return AuctionListDTO.builder()
                     .id(post.getAuctionId())
@@ -91,7 +84,7 @@ public class AuctionPostService {
         //경매 게시글에 연결된 이미지 리스트를 꺼내서 각각의 이미지에서 imageName만 뽑아낸 뒤 리스트로 만듦.
         List<String> imageUrls = post.getImages().stream()
                 .sorted(Comparator.comparingInt(AuctionImage::getSortOrder))
-                .map(img -> "/api/auction/images/" + img.getImageId())
+                .map(AuctionImage::getImageUrl)
                 .toList();
 
         //getAuctionDetail() 호출 시 +1

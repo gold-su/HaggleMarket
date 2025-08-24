@@ -5,8 +5,6 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity //엔티티 등록
 @Table(name = "auction_post_images")
@@ -43,4 +41,15 @@ public class AuctionImage {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    private static final String IMAGE_ENDPOINT = "/api/auction/images/";
+
+    /**
+     * 계산된 이미지 조회 URL을 반환한다. DB에는 URL을 저장하지 않고
+     * imageId 로만 이미지를 식별하며, GET
+     * {@code /api/auction/images/{imageId}} 형태의 경로로 접근한다.
+     */
+    @Transient
+    public String getImageUrl() {
+        return IMAGE_ENDPOINT + this.imageId;
+    }
 }

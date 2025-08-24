@@ -5,6 +5,8 @@ import com.hagglemarket.marketweb.postlike.entity.PostLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,10 +55,10 @@ select new com.hagglemarket.marketweb.postlike.dto.LikeItemDto(
   'AUCTION',
   a.auctionId,
   a.title,
-  (select ai2.imageUrl
+  (select concat('/api/auction/images/', ai2.imageId)
      from AuctionImage ai2
     where ai2.auctionPost = a
-      and ai2.id = (select min(ai3.id) from AuctionImage ai3 where ai3.auctionPost = a)),
+      and ai2.imageId = (select min(ai3.imageId) from AuctionImage ai3 where ai3.auctionPost = a)),
   pl.createdAt
 )
 from PostLike pl
@@ -65,4 +67,13 @@ where pl.userNo = :userNo and pl.auctionId is not null
 order by pl.createdAt desc
 """)
     List<LikeItemDto> findMyAuctionLikes(int userNo);
+
+
+    default List<LikeItemDto> findMyLikes(int userNo) {
+        List<LikeItemDto> result = new ArrayList<>();
+        result.addAll(findMyPostLikes(userNo));
+        result.addAll(findMyAuctionLikes(userNo));
+        result.sort(Comparator.comparing(LikeItemDto::getCreatedAt).reversed());
+        return result;
+    }
 }
