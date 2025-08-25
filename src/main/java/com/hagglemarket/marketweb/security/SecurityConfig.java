@@ -53,7 +53,8 @@ public class SecurityConfig {
                                 "/api/auction/**",          // 상세/리스트
                                 "/api/auction/images/**",    // 이미지 바이트
                                 "/api/categories/**",
-                                "/api/likes/sidebar"
+                                "/api/likes/sidebar",
+                                "/api/auction/hot"
 
                         ).permitAll()
                         // 좋아요(B안): 모두 인증 필요

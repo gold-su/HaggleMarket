@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AuctionImageRepository extends JpaRepository<AuctionImage, Integer> {
 
@@ -19,5 +20,6 @@ public interface AuctionImageRepository extends JpaRepository<AuctionImage, Inte
     //특정 이미지 하나만 삭제 (예 : 프론트에서 이미지 X 버튼 눌렀을 때)
     void deleteById(int imageId);
 
-
+    // sort_order 오름차순(동점이면 image_id 오름차순)으로 첫 이미지 1장
+    Optional<AuctionImage> findFirstByAuctionPost_AuctionIdOrderBySortOrderAscImageIdAsc(int auctionId);
 }

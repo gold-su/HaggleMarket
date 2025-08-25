@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 //경매 상품 전용 리포지토리
@@ -28,4 +29,14 @@ public interface AuctionPostRepository extends JpaRepository<AuctionPost, Intege
 
     //DB 조회용 메서드
     List<AuctionPost> findByStartTimeBeforeAndStatus(LocalDateTime now, AuctionStatus status);
+
+
+    //반환타입 : List<AuctionPost> -> 조건에 맞는 경매글들을 모두 리스트로 반환
+    //메서드명 : findBy + AuctionId + In
+    //      - In: 컬렉션에 들어있는 값들 중 하나라도 일치하는 행을 찾는 SQL IN 절 생성
+    //파라미터 : Collection<Integer> ids
+    //      - ids에 담긴 여러 auctionId 들로 IN 쿼리 수행
+    //      - List, Set, Iterable 등으로도 선언 가능
+    List<AuctionPost> findByAuctionIdIn(Collection<Integer> ids);
+
 }
