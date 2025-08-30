@@ -18,6 +18,9 @@ public class AuctionDetailDTO {
     private Integer buyoutPrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Integer categoryId;         // 소분류 id
+    private String categoryPath;        // "대 > 중 > 소"
+    private List<Integer> categoryIds;  // [largeId, middleId, smallId]
 
     private List<String> imagesUrls; //이미지
 

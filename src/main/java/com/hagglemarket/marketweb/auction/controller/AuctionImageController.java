@@ -9,6 +9,7 @@ import com.hagglemarket.marketweb.auction.repository.AuctionPostRepository;
 import com.hagglemarket.marketweb.auction.service.AuctionImageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,12 +57,16 @@ public class AuctionImageController {
     //이미지 바이트 조회 (썸네일)
     @GetMapping("/{imageId}")
     public ResponseEntity<byte[]> getThumbnailImage(@PathVariable int imageId) {
-        //imageId로 DB 에서 AuctionImage 조회. 없으면 예외 발생
         AuctionImage img = auctionImageRepository.findById(imageId)
-                .orElseThrow(()->new IllegalArgumentException("이미지 없음"));
-        //응답으로 이미지 바이트 전송
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "이미지 없음"));
+
+        String type = (img.getImageType() == null || img.getImageType().isBlank())
+                ? "image/jpeg" : img.getImageType();
+
         return ResponseEntity.ok()
-                .header("Content-Type", img.getImageType())
+                .contentType(org.springframework.http.MediaType.parseMediaType(type))
+                .cacheControl(org.springframework.http.CacheControl.maxAge(java.time.Duration.ofHours(1)).cachePublic())
                 .body(img.getImageData());
     }
 }

@@ -7,13 +7,14 @@ import com.hagglemarket.marketweb.auction.dto.AuctionPostResponse;
 import com.hagglemarket.marketweb.auction.entity.AuctionImage;
 import com.hagglemarket.marketweb.auction.entity.AuctionPost;
 import com.hagglemarket.marketweb.auction.repository.AuctionPostRepository;
+import com.hagglemarket.marketweb.category.repository.CategoryRepository;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.ResourceTransactionManager;
+import com.hagglemarket.marketweb.category.entity.Category;
 
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +25,7 @@ public class AuctionPostService {
 
     private final AuctionPostRepository auctionPostRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     //경매 상품 등록 메서드
     @Transactional
@@ -98,6 +100,33 @@ public class AuctionPostService {
         post.setHit(post.getHit() + 1);
         auctionPostRepository.save(post);
 
+        String categoryPath = null;
+        List<Integer> categoryIds = null;
+        Integer smallId = post.getCategory(); // ⬅️ AuctionPost에 소분류 id가 있다고 가정
+        if (smallId != null) {
+            Category small = categoryRepository.findById(smallId)
+                    .orElseThrow(() -> new IllegalArgumentException("카테고리 없음: " + smallId));
+            Category middle = small.getParent();
+            Category large  = (middle != null ? middle.getParent() : null);
+
+            // 이름들 조립 (부모가 null일 수 있는 환경도 방어)
+            String largeName  = (large  != null ? large.getName()  : null);
+            String middleName = (middle != null ? middle.getName() : null);
+            String smallName  = small.getName();
+
+            // "대 > 중 > 소" 형태로 안전하게 생성
+            if (largeName != null && middleName != null) {
+                categoryPath = largeName + " > " + middleName + " > " + smallName;
+                categoryIds  = List.of(large.getId(), middle.getId(), small.getId());
+            } else if (middleName != null) {
+                categoryPath = middleName + " > " + smallName;
+                categoryIds  = List.of(middle.getId(), small.getId());
+            } else {
+                categoryPath = smallName;
+                categoryIds  = List.of(small.getId());
+            }
+        }
+
         //DTO를 builder 패턴으로 생성
         return AuctionDetailDTO.builder()
                 .auctionId(post.getAuctionId())
@@ -113,6 +142,9 @@ public class AuctionPostService {
                 .winnerNickname(post.getWinner() == null ? null : post.getWinner().getNickName()) //null일 수 있음
                 .hit(post.getHit())
                 .bidCount(post.getBidCount())
+                .categoryId(smallId)
+                .categoryIds(categoryIds)
+                .categoryPath(categoryPath)
                 .build();
     }
 
