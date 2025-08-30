@@ -27,7 +27,7 @@ public interface UnifiedSearchRepository extends JpaRepository<Post, Integer> {
             (SELECT img.image_url
                FROM post_images img
               WHERE img.post_id = p.post_id
-              ORDER BY img.sort_order ASC, img.image_no ASC
+              ORDER BY img.sort_order, img.image_no
               LIMIT 1) AS thumbnailUrl,
             NULL AS thumbnailId
           FROM posts p
@@ -52,7 +52,7 @@ public interface UnifiedSearchRepository extends JpaRepository<Post, Integer> {
             (SELECT ai.image_id
                FROM auction_post_images ai
               WHERE ai.auction_id = a.auction_id
-              ORDER BY ai.sort_order ASC, ai.image_id ASC
+              ORDER BY ai.sort_order, ai.image_id
               LIMIT 1) AS thumbnailId
           FROM auction_posts a
           WHERE (

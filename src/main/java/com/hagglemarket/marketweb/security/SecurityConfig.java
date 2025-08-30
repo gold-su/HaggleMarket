@@ -1,6 +1,5 @@
 package com.hagglemarket.marketweb.security;
 
-import com.hagglemarket.marketweb.user.repository.UserRepository;
 import com.hagglemarket.marketweb.user.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

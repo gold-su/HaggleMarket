@@ -64,9 +64,7 @@ public class AuctionPostService {
             //첫 번째 이미지가 있다면 URL 생성
             if(!post.getImages().isEmpty()) {
                 int firstImageId = post.getImages()
-                        .stream()
-                        .sorted(Comparator.comparingInt(AuctionImage::getSortOrder))
-                        .findFirst()
+                        .stream().min(Comparator.comparingInt(AuctionImage::getSortOrder))
                         .get()
                         .getImageId();
                 thumbnailUrl = "/api/auction/images/" + firstImageId;
