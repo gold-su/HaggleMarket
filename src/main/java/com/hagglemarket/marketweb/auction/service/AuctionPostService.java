@@ -46,6 +46,13 @@ public class AuctionPostService {
         post.setStartTime(request.getStartTime());
         post.setEndTime(request.getEndTime());
 
+        if (request.getCategoryId() != null) {
+            //카테고리 존재 여부 확인
+            categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("카테고리 없음: " + request.getCategoryId()));
+            post.setCategory(request.getCategoryId());
+        }
+
         //DB에 저장
         auctionPostRepository.save(post);
 

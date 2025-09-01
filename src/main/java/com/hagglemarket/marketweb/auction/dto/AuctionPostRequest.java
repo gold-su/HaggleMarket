@@ -13,6 +13,7 @@ public class AuctionPostRequest {
     private String content;
     private int startCost;
     private Integer buyoutCost;     //즉시구매가 (nullable)
+    private Integer categoryId;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
