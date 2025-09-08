@@ -36,4 +36,28 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Integer> {
     order by pl.createdAt desc
 """)
     List<LikeItemDto> findMyLikes(int userNo);
+
+    // PostLikeRepository.java
+    @Query("""
+select new com.hagglemarket.marketweb.postlike.dto.LikeItemDto(
+    p.postId,
+    p.title,
+    (
+       select pi2.imageUrl
+       from PostImage pi2
+       where pi2.post = p
+         and pi2.imageNo = (
+             select min(pi3.imageNo)
+             from PostImage pi3
+             where pi3.post = p
+         )
+    )
+)
+from PostLike pl
+join Post p on p.postId = pl.postId
+where pl.userNo = :userNo
+order by pl.createdAt desc
+""")
+    List<LikeItemDto> findMyLikes(int userNo, org.springframework.data.domain.Pageable pageable);
+
 }

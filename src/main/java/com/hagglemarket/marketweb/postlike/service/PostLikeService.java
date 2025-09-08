@@ -44,4 +44,9 @@ public class PostLikeService {
     public List<LikeItemDto> getMyLikes(int userNo) {
         return postLikeRepository.findMyLikes(userNo);
     }
+
+    @Transactional(readOnly = true)
+    public List<LikeItemDto> getMyLikes(int userNo, int limit) {
+        return postLikeRepository.findMyLikes(userNo, org.springframework.data.domain.PageRequest.of(0, limit));
+    }
 }

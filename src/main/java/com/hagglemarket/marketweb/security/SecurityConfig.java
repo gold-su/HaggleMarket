@@ -53,8 +53,8 @@ public class SecurityConfig {
                                 "/api/auction/images/**",    // 이미지 바이트
                                 "/api/categories/**",
                                 "/api/likes/sidebar",
-                                "api/search" //검색api
-
+                                "/api/search",//검색api
+                                "/api/products/likes/sidebar"
                         ).permitAll()
                         // 좋아요(B안): 모두 인증 필요
                         .requestMatchers(HttpMethod.GET,    "/api/products/{postId}/like/me").authenticated()
