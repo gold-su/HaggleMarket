@@ -39,8 +39,15 @@ public class PostLikeController {
         return Map.of("liked",postLikeService.isLiked(user.getUserNo(), postId));
     }
 
-    @GetMapping("/{postId}/like/sidebar")
-    public List<LikeItemDto> getSidebarLikes(@RequestParam int userNo) {
-        return postLikeService.getMyLikes(userNo);
+    @GetMapping("/likes/sidebar")
+    public List<LikeItemDto> getSidebarLikes(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        if (user == null) {
+            return List.of(); // 로그인 안 했으면 빈 목록
+        }
+        return postLikeService.getMyLikes(user.getUserNo(), limit);
     }
+
 }
