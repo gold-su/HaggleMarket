@@ -1,5 +1,6 @@
 package com.hagglemarket.marketweb.security;
 
+import com.hagglemarket.marketweb.user.repository.UserRepository;
 import com.hagglemarket.marketweb.user.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +54,11 @@ public class SecurityConfig {
                                 "/api/auction/images/**",    // 이미지 바이트
                                 "/api/categories/**",
                                 "/api/likes/sidebar",
-                                "/api/search",//검색api
                                 "/api/products/likes/sidebar"
+                                "api/search", //검색api
+                                "/api/auction/hot"
+
+
                         ).permitAll()
                         // 좋아요(B안): 모두 인증 필요
                         .requestMatchers(HttpMethod.GET,    "/api/products/{postId}/like/me").authenticated()
