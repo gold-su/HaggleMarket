@@ -21,5 +21,7 @@ public class AuctionPostUpdateRequest {
 
 
     private LocalDateTime startTime; //READY 상태에서만 변경 허용
-    private LocalDateTime endTime;   //READY 상태 + startTime < endTime
+    private LocalDateTime endTime;   //READY 상태 + startTime// < endTime
+
+    private Integer categoryId;
 }
