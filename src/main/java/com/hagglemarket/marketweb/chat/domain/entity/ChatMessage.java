@@ -18,6 +18,7 @@ public class ChatMessage {
     @Column(name="chat_message_id")
     private Integer id;
 
+    //하나의 메시지는 하나의 채팅방에 속하고, 하나의 방에는 여러 메시지가 속할 수 있음.
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name="chat_room_id", nullable=false)
     private ChatRoom room; //메시지가 속한 방(FK). LAZY라 room을 실제 접근할 때만 쿼리 나감. DB DDL 이 ON DELETE CASCADE면 방 삭제 시 메시지도 같이 삭제됨
 
