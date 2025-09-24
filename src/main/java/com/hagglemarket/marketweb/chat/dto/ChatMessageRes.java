@@ -33,7 +33,7 @@ public class ChatMessageRes {
         return ChatMessageRes.builder()
                 .id(m.getId())
                 .roomId(m.getRoom().getId())
-                .senderNo(m.getSender().getUserNo())
+                .senderNo(m.getSender() == null ? null : m.getSender().getUserNo()) //npe 위험 방지
                 .content(m.getContent())
                 .type(m.getMsgType().name())
                 .status(m.getStatus().name())
