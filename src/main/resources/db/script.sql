@@ -297,6 +297,293 @@ END$$
 
 DELIMITER ;
 
+--------------------------------------------------------------------
+현재 상태 sql 구문
+
+create table category
+(
+    id        int auto_increment
+        primary key,
+    name      varchar(50) not null,
+    parent_id int         null,
+    constraint category_ibfk_1
+        foreign key (parent_id) references category (id)
+);
+
+create index parent_id
+    on category (parent_id);
+
+create table users
+(
+    user_no      int auto_increment
+        primary key,
+    user_id      varchar(20)  not null,
+    user_name    varchar(10)  not null,
+    password     varchar(255) not null,
+    phone_number varchar(11)  not null,
+    nick_name    varchar(15)  not null,
+    address      varchar(30)  not null,
+    email        varchar(50)  not null,
+    image_url    text         null,
+    created_at   datetime     null,
+    status       varchar(20)  null,
+    rating       decimal      null,
+    road_rating  decimal      null,
+    constraint uq_users_userid_email_phone
+        unique (user_id, email, phone_number)
+);
+
+create table auction_posts
+(
+    auction_id     int auto_increment
+        primary key,
+    user_no        int                                                                         not null,
+    category_id    int                                                                         null,
+    title          varchar(50)                                                                 not null,
+    content        text                                                                        not null,
+    start_cost     int                                                                         not null,
+    current_cost   int                                                                         not null,
+    buyout_cost    int                                                                         null,
+    start_time     datetime                                                                    not null,
+    end_time       datetime                                                                    not null,
+    winner_user_no int                                                                         null,
+    hit            int                                             default 0                   not null,
+    bid_count      int                                             default 0                   not null,
+    created_at     datetime                                        default current_timestamp() null,
+    updated_at     datetime                                        default current_timestamp() null on update current_timestamp(),
+    status         enum ('READY', 'ONGOING', 'ENDED', 'CANCELLED') default 'READY'             null,
+    like_count     int                                             default 0                   not null,
+    constraint fk_auction_posts_user
+        foreign key (user_no) references users (user_no),
+    constraint fk_auction_posts_winner
+        foreign key (winner_user_no) references users (user_no)
+);
+
+create table auction_post_images
+(
+    image_id   int auto_increment
+        primary key,
+    auction_id int                                  not null,
+    image_data mediumblob                           not null,
+    image_name varchar(255)                         not null,
+    image_type varchar(50)                          not null,
+    sort_order int                                  not null,
+    created_at datetime default current_timestamp() null,
+    constraint fk_auction_post_images
+        foreign key (auction_id) references auction_posts (auction_id)
+            on delete cascade
+);
+
+create table bids
+(
+    bid_id         int auto_increment
+        primary key,
+    auction_id     int                                  not null,
+    bidder_user_no int                                  not null,
+    bid_amount     int                                  not null,
+    bid_time       datetime default current_timestamp() null,
+    constraint fk_bids_auction_posts
+        foreign key (auction_id) references auction_posts (auction_id)
+            on delete cascade,
+    constraint fk_bids_user
+        foreign key (bidder_user_no) references users (user_no)
+            on delete cascade
+);
+
+create table posts
+(
+    post_id        int auto_increment
+        primary key,
+    user_no        int                                    not null,
+    title          varchar(50)                            not null,
+    cost           int                                    not null,
+    content        text                                   not null,
+    hit            int        default 0                   not null,
+    created_at     datetime   default current_timestamp() null,
+    updated_at     datetime   default current_timestamp() null on update current_timestamp(),
+    status         varchar(20)                            null,
+    delivery_fee   tinyint(1) default 0                   not null,
+    swapping       tinyint(1) default 0                   not null,
+    category_id    int                                    null,
+    negotiable     tinyint(1) default 0                   not null,
+    product_status varchar(20)                            not null,
+    like_count     int        default 0                   not null,
+    constraint posts_users_user_no_fk
+        foreign key (user_no) references users (user_no)
+);
+
+create table chat_rooms
+(
+    chat_room_id   int auto_increment
+        primary key,
+    room_kind      enum ('POST', 'AUCTION', 'ORDER')                      not null,
+    post_id        int                                                    null,
+    auction_id     int                                                    null,
+    order_id       int                                                    null,
+    seller_user_no int                                                    not null,
+    buyer_user_no  int                                                    not null,
+    status         enum ('ACTIVE', 'CLOSED') default 'ACTIVE'             not null,
+    created_at     datetime(3)               default current_timestamp(3) not null,
+    updated_at     datetime(3)               default current_timestamp(3) not null on update current_timestamp(3),
+    constraint uq_room_auction
+        unique (room_kind, auction_id, seller_user_no, buyer_user_no),
+    constraint uq_room_order
+        unique (room_kind, order_id, seller_user_no, buyer_user_no),
+    constraint uq_room_post
+        unique (room_kind, post_id, seller_user_no, buyer_user_no),
+    constraint fk_room_auction
+        foreign key (auction_id) references auction_posts (auction_id)
+            on delete set null,
+    constraint fk_room_buyer
+        foreign key (buyer_user_no) references users (user_no),
+    constraint fk_room_post
+        foreign key (post_id) references posts (post_id)
+            on delete set null,
+    constraint fk_room_seller
+        foreign key (seller_user_no) references users (user_no),
+    constraint chk_distinct_users
+        check (`seller_user_no` <> `buyer_user_no`)
+);
+
+create table chat_messages
+(
+    chat_message_id int auto_increment
+        primary key,
+    chat_room_id    int                                                     not null,
+    sender_user_no  int                                                     null,
+    msg_type        enum ('CHAT', 'SYSTEM')    default 'CHAT'               not null,
+    content         text                                                    null,
+    client_msg_id   bigint                                                  null,
+    status          enum ('NORMAL', 'DELETED') default 'NORMAL'             not null,
+    created_at      datetime(3)                default current_timestamp(3) not null,
+    constraint uq_client_dedup
+        unique (chat_room_id, sender_user_no, client_msg_id),
+    constraint fk_msg_room
+        foreign key (chat_room_id) references chat_rooms (chat_room_id)
+            on delete cascade,
+    constraint fk_msg_sender
+        foreign key (sender_user_no) references users (user_no),
+    constraint chk_sender_system
+        check (`msg_type` = 'SYSTEM' and `sender_user_no` is null or
+               `msg_type` = 'CHAT' and `sender_user_no` is not null)
+);
+
+create index idx_msg_room
+    on chat_messages (chat_room_id);
+
+create index idx_msg_room_id
+    on chat_messages (chat_room_id, chat_message_id);
+
+create index idx_room_created_pk
+    on chat_messages (chat_room_id, created_at, chat_message_id);
+
+create table chat_room_members
+(
+    chat_room_id         int not null,
+    user_no              int not null,
+    last_read_message_id int null,
+    primary key (chat_room_id, user_no),
+    constraint fk_member_last
+        foreign key (last_read_message_id) references chat_messages (chat_message_id)
+            on delete set null,
+    constraint fk_member_room
+        foreign key (chat_room_id) references chat_rooms (chat_room_id)
+            on delete cascade,
+    constraint fk_member_user
+        foreign key (user_no) references users (user_no)
+);
+
+create index idx_room_buyer
+    on chat_rooms (buyer_user_no);
+
+create index idx_room_kind_auction
+    on chat_rooms (room_kind, auction_id);
+
+create index idx_room_kind_order
+    on chat_rooms (room_kind, order_id);
+
+create index idx_room_kind_post
+    on chat_rooms (room_kind, post_id);
+
+create index idx_room_seller
+    on chat_rooms (seller_user_no);
+
+create definer = root@localhost trigger trg_chat_rooms_bi
+    before insert
+    on chat_rooms
+    for each row
+BEGIN
+    IF ((NEW.post_id IS NOT NULL) + (NEW.auction_id IS NOT NULL) + (NEW.order_id IS NOT NULL)) > 1 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one of post_id/auction_id/order_id may be non-NULL';
+    END IF;
+
+    IF (NEW.post_id    IS NOT NULL AND NEW.room_kind <> 'POST')
+        OR (NEW.auction_id IS NOT NULL AND NEW.room_kind <> 'AUCTION')
+        OR (NEW.order_id   IS NOT NULL AND NEW.room_kind <> 'ORDER') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'room_kind must match the non-NULL resource column';
+    END IF;
+END;
+
+create definer = root@localhost trigger trg_chat_rooms_bu
+    before update
+    on chat_rooms
+    for each row
+BEGIN
+    IF ((NEW.post_id IS NOT NULL) + (NEW.auction_id IS NOT NULL) + (NEW.order_id IS NOT NULL)) > 1 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Only one of post_id/auction_id/order_id may be non-NULL';
+    END IF;
+
+    IF (NEW.post_id    IS NOT NULL AND NEW.room_kind <> 'POST')
+        OR (NEW.auction_id IS NOT NULL AND NEW.room_kind <> 'AUCTION')
+        OR (NEW.order_id   IS NOT NULL AND NEW.room_kind <> 'ORDER') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'room_kind must match the non-NULL resource column';
+    END IF;
+END;
+
+create table post_images
+(
+    image_no   int auto_increment
+        primary key,
+    post_id    int          not null,
+    image_url  varchar(255) not null,
+    sort_order int          not null,
+    constraint post_images_posts_post_id_fk
+        foreign key (post_id) references posts (post_id)
+);
+
+create table post_like
+(
+    id         int auto_increment
+        primary key,
+    user_no    int                                  not null,
+    post_id    int                                  not null,
+    created_at datetime default current_timestamp() null,
+    constraint uq_user_post
+        unique (user_no, post_id),
+    constraint fk_like_post
+        foreign key (post_id) references posts (post_id),
+    constraint fk_like_user
+        foreign key (user_no) references users (user_no)
+);
+
+create index idx_post
+    on post_like (post_id);
+
+create index idx_user
+    on post_like (user_no);
+
+create table withdraw_users
+(
+    no          int auto_increment
+        primary key,
+    user_id     varchar(20)                          not null,
+    user_email  varchar(50)                          null,
+    withdraw_at datetime default current_timestamp() not null
+);
+
+
+
+
 밑은 예전꺼
 ---------------------------------------------------------------------
 
