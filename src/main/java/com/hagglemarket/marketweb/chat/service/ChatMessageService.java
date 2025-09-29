@@ -25,5 +25,5 @@ public interface ChatMessageService {
     //size : 한 번에 가져올 개수(페이지 크기.)
     //반환값 : Page<ChatMessage> -> 콘텐츠 리스트 + hasNext/totalElements 등 메타 포함.
     //구현에서는 보통 findByRoom_IdOrderByIdDesc(최초) + findByRoom_IdAndIdLessThanOrderByIdDesc(이전) 패턴을 사용.
-    Page<ChatMessage> getMessage(int roomId, Integer beforeId, int size);
+    Page<ChatMessage> getMessages(int roomId, Integer beforeId, int size);
 }

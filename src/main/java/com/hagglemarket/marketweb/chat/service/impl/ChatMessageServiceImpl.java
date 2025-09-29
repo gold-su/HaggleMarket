@@ -56,7 +56,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     //메시지 페이지 조회
     //beforeId가 null 이면 최신부터 size개.
     //beforeId가 null 이 아니면 그 id 보다 작은 과거 size개
-    public Page<ChatMessage> getMessage(int roomId, Integer beforeId, int size){
+    public Page<ChatMessage> getMessages(int roomId, Integer beforeId, int size){
         return beforeId == null
                 ? messageRepo.findByRoom_IdOrderByIdDesc(roomId, PageRequest.of(0,size))
                 : messageRepo.findByRoom_IdAndIdLessThanOrderByIdDesc(roomId, beforeId, PageRequest.of(0, size));
