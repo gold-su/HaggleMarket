@@ -2,6 +2,7 @@ package com.hagglemarket.marketweb.chat.repository;
 
 import com.hagglemarket.marketweb.chat.domain.entity.ChatRoom;
 import com.hagglemarket.marketweb.chat.enums.RoomKind;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -24,4 +25,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Integer> {
     //roomKind = k AND orderId = orderId AND seller.userNo = s AND buyer.userNo = b
     //주문 기반의 채팅방을 찾을 때 사용
     Optional<ChatRoom> findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(RoomKind k, Integer orderId, Integer s, Integer b);
+
+    //내 방 목록 (판매자/구매자 둘 다 포함), 최신 활동순
+    Page<ChatRoom> findBySeller_UserNoOrBuyer_UserNoOrderByUpdatedAtDesc(Integer sellerUserNo, Integer buyerUserNo, org.springframework.data.domain.Pageable pageable);
 }
