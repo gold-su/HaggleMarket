@@ -5,6 +5,7 @@ import com.hagglemarket.marketweb.chat.domain.entity.ChatRoomMember;
 import com.hagglemarket.marketweb.chat.domain.id.ChatRoomMemberId;
 import com.hagglemarket.marketweb.chat.enums.RoomKind;
 import com.hagglemarket.marketweb.chat.enums.RoomStatus;
+import com.hagglemarket.marketweb.chat.repository.ChatRoomMemberRepository;
 import com.hagglemarket.marketweb.chat.repository.ChatRoomRepository;
 import com.hagglemarket.marketweb.chat.service.ChatRoomService;
 import com.hagglemarket.marketweb.user.entity.User;
@@ -24,7 +25,7 @@ import static org.springframework.http.HttpStatus.*;
 public class ChatRoomServiceImpl implements ChatRoomService {
 
     private final ChatRoomRepository roomRepo;
-    private final ChatRoomRepository memberRepo;
+    private final ChatRoomMemberRepository memberRepo;
     private final UserRepository userRepo;
 
     @Override @Transactional
@@ -73,9 +74,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             return switch (kind){
                 case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
                         .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
-                case AUCTION -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
+                case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
                         .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
-                case ORDER -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
+                case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
                         .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
             };
         }
@@ -84,8 +85,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     @Override
     public ChatRoom getMyRoom(Integer roomId, Integer meUserNo){
         var room = roomRepo.findById(roomId).orElseThrow(()->new ResponseStatusException(NOT_FOUND, "room not found"));
-        if (!room.getSeller().getUserNo().equals(meUserNo) && !room.getBuyer().getUserNo().equals(meUserNo)){
-            throw new ResponseStatusException(FORBIDDEN, "not a participant");
+
+        //내가 판매자도 아니고, 구매자도 아니면 -> 403
+        if(room.getSeller().getUserNo() != meUserNo && room.getBuyer().getUserNo() != meUserNo){
+            throw new ResponseStatusException(FORBIDDEN, "not a member of the room");
         }
         return room;
     }
@@ -99,14 +102,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     @Transactional
     public void closeRoom(Integer roomId, Integer meUserNo){
         var room = getMyRoom(roomId, meUserNo);
-        if(room.getStatus() == RoomStatus.CLOSED) return;
+        room.setStatus(RoomStatus.CLOSED);
     }
 
     @Override
     @Transactional //"이 메서드를 DB 작업을 하나의 트랜잭션으로 묶어줘!"라는 애너테이션
     public void reopenRoom(Integer roomId, Integer meUserNo){
         var room = getMyRoom(roomId, meUserNo);
-        if(room.getStatus() == RoomStatus.ACTIVE) return;
+        room.setStatus(RoomStatus.ACTIVE);
     }
 
     private void ensureMember(ChatRoom room, User user){
