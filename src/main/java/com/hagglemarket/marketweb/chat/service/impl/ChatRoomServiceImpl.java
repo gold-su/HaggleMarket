@@ -24,6 +24,20 @@ import static org.springframework.http.HttpStatus.*;
 @RequiredArgsConstructor
 public class ChatRoomServiceImpl implements ChatRoomService {
 
+    //    사용자가 게시글 상세에서 채팅하기 클릭
+    //    컨트롤러 → findOrCreate(POST, postId, sellerNo, buyerNo) 호출
+    //    이미 있나? → 있으면 그 방 id 반환 / 없으면 새 방 저장
+    //    멤버 2명 보장
+    //    프론트는 반환된 roomId로 메시지 목록/입장 수행
+    //    채팅 목록에서 내 방들 보기
+    //    → listMyRooms(me, pageable)로 최신순 가져오기
+    //    방에 들어가려고 할 때
+    //    → getMyRoom(roomId, me)로 권한 체크 포함하여 조회
+    //    거래 끝나서 방 닫기
+    //    → closeRoom(roomId, me)로 상태 CLOSED
+    //    다시 대화 필요
+    //    → reopenRoom(roomId, me)로 상태 ACTIVE
+
     private final ChatRoomRepository roomRepo;
     private final ChatRoomMemberRepository memberRepo;
     private final UserRepository userRepo;
