@@ -22,7 +22,6 @@ public class ShopStatsView {
     @Column(name = "sold_posts")            private Long soldPosts;
     @Column(name = "sold_auctions")         private Long soldAuctions;
     @Column(name = "total_likes_received")  private Long totalLikesReceived;
-    @Column(name = "liked_by_me_total")     private Long likedByMeTotal;
     @Column(name = "followers")             private Long followers;
     @Column(name = "following")             private Long following;
 

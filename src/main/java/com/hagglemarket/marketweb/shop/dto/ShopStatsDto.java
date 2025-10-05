@@ -18,6 +18,6 @@ public class ShopStatsDto {
     private long followers;
     private long following;
     private BigDecimal ratingAvg;
-    private LocalDateTime storeOpenDate;
+    private LocalDateTime storeOpenedAt;
     private long reviewCount;
 }
