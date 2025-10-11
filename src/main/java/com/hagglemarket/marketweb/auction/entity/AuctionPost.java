@@ -8,18 +8,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity //엔티티로 명시
-@Table(name = "auction_posts") //DB 테이블 이름 저장 / 필수는 아니지만 정확성을 위해
-@Data //getter, setter 자동 생성 / 하지만 실무에서는 무한 루프 발생 위험이 있어서 따로 쓰기도 함
+@Entity
+@Table(name = "auction_posts")
+@Data
 public class AuctionPost {
 
-    @Id //primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //AUTO_INCREMENT 전략
-    @Column(name="auction_id") //실제 테이블과 매핑
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="auction_id")
     private int auctionId;
 
-    @ManyToOne(fetch = FetchType.LAZY) //여러 상품 -> 한 사용자 (N:1 관계)
-    @JoinColumn(name = "user_no", nullable = false) //FK, not null
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_no", nullable = false)
     private User seller;
 
     @Column(name = "category_id")
@@ -31,10 +31,10 @@ public class AuctionPost {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column(name = "start_cost",nullable = false)
+    @Column(name = "start_cost", nullable = false)
     private int startCost;
 
-    @Column(name = "current_cost", nullable = false )
+    @Column(name = "current_cost", nullable = false)
     private int currentCost;
 
     @Column(name = "buyout_cost")
@@ -52,14 +52,18 @@ public class AuctionPost {
     @Column(name = "bid_count", nullable = false, columnDefinition = "INT DEFAULT 0")
     private int bidCount = 0;
 
-    @Enumerated(EnumType.STRING) //Enum을 문자열로 저장
+    /* ✅ 찜(좋아요) 개수 필드 추가 */
+    @Column(name = "like_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private int likeCount = 0;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AuctionStatus status = AuctionStatus.READY;
 
-    @Column(name = "created_at",nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at",nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -68,5 +72,4 @@ public class AuctionPost {
 
     @OneToMany(mappedBy = "auctionPost", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AuctionImage> images = new ArrayList<>();
-
 }
