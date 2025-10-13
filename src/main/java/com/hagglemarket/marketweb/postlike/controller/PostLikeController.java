@@ -44,11 +44,9 @@ public class PostLikeController {
                                              @RequestParam(defaultValue = "20") int limit) {
         if (user == null) return List.of();
 
-        // 일반 찜 + 경매 찜 둘 다 합치기
-        List<LikeItemDto> postLikes = postLikeService.getMyLikes(user.getUserNo(), limit);
+        List<LikeItemDto> postLikes = new java.util.ArrayList<>(postLikeService.getMyLikes(user.getUserNo(), limit));
         List<LikeItemDto> auctionLikes = postLikeService.getMyAuctionLikes(user.getUserNo());
 
-        // 병합 후 최근순 정렬 (createdAt 기준은 없으니 단순히 합치기)
         postLikes.addAll(auctionLikes);
         return postLikes;
     }
