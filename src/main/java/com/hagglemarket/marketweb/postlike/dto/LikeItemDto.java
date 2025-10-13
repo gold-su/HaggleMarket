@@ -1,10 +1,7 @@
 package com.hagglemarket.marketweb.postlike.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.hagglemarket.marketweb.auction.entity.AuctionPost;
-import com.hagglemarket.marketweb.post.entity.Post;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
