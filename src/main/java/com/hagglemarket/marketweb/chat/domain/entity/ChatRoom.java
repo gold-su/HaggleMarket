@@ -53,8 +53,10 @@ public class ChatRoom {
 
     //생성/수정 시각
     @Column(name="created_at", updatable = false) //이후 수정되지 않도록 updatable=false
+    @org.hibernate.annotations.CreationTimestamp
     private LocalDateTime createdAt;
     @Column(name="updated_at", insertable = false, updatable = false) //insert, update에 포함시키지 않음
+    @org.hibernate.annotations.UpdateTimestamp
     private LocalDateTime updatedAt;
 
 }
