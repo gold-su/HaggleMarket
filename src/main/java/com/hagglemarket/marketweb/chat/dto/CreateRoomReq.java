@@ -16,5 +16,5 @@ public class CreateRoomReq { //채팅방 생성 요청 바디.
     private Integer orderId;
 
     //대화 상대(판매자) PK
-    @NotNull private Integer sellerUserNo;
+    private Integer sellerUserNo;
 }

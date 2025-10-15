@@ -1,8 +1,10 @@
 package com.hagglemarket.marketweb.chat.controller;
 
+import com.hagglemarket.marketweb.auction.service.AuctionService;
 import com.hagglemarket.marketweb.chat.dto.ChatRoomRes;
 import com.hagglemarket.marketweb.chat.dto.CreateRoomReq;
 import com.hagglemarket.marketweb.chat.service.ChatRoomService;
+import com.hagglemarket.marketweb.post.service.PostService;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 public class ChatRoomController {
 
     private final ChatRoomService roomService;
+    private final PostService postService;
+    private final AuctionService auctionService;
 
     //방 생성(또는 기존 방 재사용): 멱등
     @PostMapping(value = "/rooms", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -30,7 +34,15 @@ public class ChatRoomController {
         };
         if(resourceId == null) throw new IllegalArgumentException("resource id is required for " + req.getRoomKind());
 
-        var room = roomService.findOrCreate(req.getRoomKind(), resourceId, req.getSellerUserNo(), me.getUserNo());
+        //판매자 userNo를 서버 내부에서 조회
+        Integer sellerUserNo = switch (req.getRoomKind()){
+            case POST -> postService.getSellerUserNoByPostId(resourceId);
+            case AUCTION -> auctionService.getSellerUserNoByAuctionId(resourceId);
+            case ORDER -> me.getUserNo(); // AI 방이라면 자기 자신 기준으로 생성
+        };
+
+
+        var room = roomService.findOrCreate(req.getRoomKind(), resourceId, sellerUserNo, me.getUserNo());
         return ChatRoomRes.from(room);
     }
 

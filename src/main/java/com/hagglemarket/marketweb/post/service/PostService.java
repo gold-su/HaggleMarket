@@ -251,4 +251,10 @@ public class PostService {
             }
         }
     }
+
+    public Integer getSellerUserNoByPostId(Integer postId) {
+        return postRepository.findById(postId)
+                .map(p -> p.getUser().getUserNo())
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+    }
 }

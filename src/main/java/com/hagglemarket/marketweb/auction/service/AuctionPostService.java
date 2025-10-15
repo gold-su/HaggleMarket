@@ -105,6 +105,7 @@ public class AuctionPostService {
         post.setHit(post.getHit() + 1);
         auctionPostRepository.save(post);
 
+        //카테고리 경로 구성
         String categoryPath = null;
         List<Integer> categoryIds = null;
         Integer smallId = post.getCategory(); // ⬅️ AuctionPost에 소분류 id가 있다고 가정
@@ -132,6 +133,20 @@ public class AuctionPostService {
             }
         }
 
+        //판매자 정보가 null이 아닌지 확인 후 값 채우기
+        var seller = post.getSeller();
+        Integer sellerUserId = null;
+        String sellerNickname = null;
+        String sellerAddress = null;
+        String sellerProfileImageUrl = null;
+
+        if(seller != null) {
+            sellerUserId = seller.getUserNo();
+            sellerNickname = seller.getNickName();
+            sellerAddress = seller.getAddress();
+            sellerProfileImageUrl = seller.getImageURL();
+        }
+
         //DTO를 builder 패턴으로 생성
         return AuctionDetailDTO.builder()
                 .auctionId(post.getAuctionId())
@@ -143,8 +158,18 @@ public class AuctionPostService {
                 .startTime(post.getStartTime())
                 .endTime(post.getEndTime())
                 .imagesUrls(imageUrls)
+
+                //판매자 정보
+                .sellerUserId(sellerUserId)
+                .sellerNickname(sellerNickname)
+                .sellerAddress(sellerAddress)
+                .sellerProfileImageUrl(sellerProfileImageUrl)
+
                 .sellerNickname(post.getSeller().getNickName())
+
+                //낙찰자 정보
                 .winnerNickname(post.getWinner() == null ? null : post.getWinner().getNickName()) //null일 수 있음
+
                 .hit(post.getHit())
                 .bidCount(post.getBidCount())
                 .categoryId(smallId)
