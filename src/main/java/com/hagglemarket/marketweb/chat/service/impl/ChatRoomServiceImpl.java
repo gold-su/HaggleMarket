@@ -5,6 +5,7 @@ import com.hagglemarket.marketweb.chat.domain.entity.ChatRoomMember;
 import com.hagglemarket.marketweb.chat.domain.id.ChatRoomMemberId;
 import com.hagglemarket.marketweb.chat.enums.RoomKind;
 import com.hagglemarket.marketweb.chat.enums.RoomStatus;
+import com.hagglemarket.marketweb.chat.repository.ChatMessageRepository;
 import com.hagglemarket.marketweb.chat.repository.ChatRoomMemberRepository;
 import com.hagglemarket.marketweb.chat.repository.ChatRoomRepository;
 import com.hagglemarket.marketweb.chat.service.ChatRoomService;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -41,9 +44,17 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final ChatRoomRepository roomRepo;
     private final ChatRoomMemberRepository memberRepo;
     private final UserRepository userRepo;
+    private final ChatMessageRepository chatMessageRepo;
 
     @Override @Transactional //이 메서드 안의 DB 작업(조회 -> 저장 -> 후처리)을 하나의 트랜잭션으로 묶어 보장.
     public ChatRoom findOrCreate(RoomKind kind, Integer resourceId, Integer sellerUserNo, Integer buyerUserNo){
+
+        //양방향 동일 유저 쌍 검사
+        var pairExisting = roomRepo.findByRoomKindAndUserPair(kind, sellerUserNo, buyerUserNo);
+        if(pairExisting.isPresent()){
+            return pairExisting.get(); //이미 존재 -> 그대로 반환 (새로 생성 안 함)
+        }
+
         //필수 인자가 빠지면 400
         if(sellerUserNo == null || buyerUserNo == null) throw new ResponseStatusException(BAD_REQUEST,"seller/buyer required");
         //판매자 = 구매자면 비즈니스 정책 위반으로 400
@@ -55,12 +66,22 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         // 중복 방 방지 : 동일한 (종류, 대상 ID, seller. buyer) 조합은 하나의 방만 유지하려는 설계.
         // 성공 시 바로 반환 -> 불필요한 insert 방지.
         // 이게 잘 작동하려면 DB에 유니크 인덱스(종류별로 부분 유니크)가 있어야 경쟁 상태에서도 안전.
-        var existing  = switch (kind){
+//        var existing  = switch (kind){
+//            case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
+//            case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
+//            case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
+//        };
+//        if(existing.isPresent()) return existing.get();
+        //중복 방 조회
+        Optional<ChatRoom> existing = switch (kind) {
             case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
             case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
             case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
         };
-        if(existing.isPresent()) return existing.get();
+        if (existing.isPresent()) {
+            return existing.get(); // 이미 방이 있으면 바로 반환
+        }
+
 
         // 2) 리소스/판매자 검증 (가능하면)
 
@@ -78,9 +99,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         // "멤버 레코드"를 둘 다 보장(없으면 생성).
         // 읽음 커서/권한 체크/참여자 조회 등에 쓰임.
         try{
-            var room = new ChatRoom();
+            ChatRoom room = new ChatRoom();
             room.setRoomKind(kind);
-            switch (kind){
+            switch (kind) {
                 case POST -> room.setPostId(resourceId);
                 case AUCTION -> room.setAuctionId(resourceId);
                 case ORDER -> room.setOrderId(resourceId);
@@ -89,12 +110,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             room.setBuyer(buyer);
             room.setStatus(RoomStatus.ACTIVE);
 
-            var saved = roomRepo.save(room);
-
-            // 5) 멤버 커서 보장
+            ChatRoom saved = roomRepo.save(room);
             ensureMember(saved, seller);
             ensureMember(saved, buyer);
-
             return saved;
         } catch (DataIntegrityViolationException e){
             //경쟁 상태로 동시에 INSERT -> 유니크 키 위반 -> 이미 생긴 방 재조회

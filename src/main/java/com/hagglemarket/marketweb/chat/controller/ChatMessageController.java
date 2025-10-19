@@ -26,15 +26,16 @@ public class ChatMessageController {
                             @RequestBody @Valid SendMessageReq req
                             ) {
         var saved = service.sendChat(roomId, senderNo, req.getContent(), req.getClientMsgId());
-       return ChatMessageRes.from(saved);
+       return ChatMessageRes.from(saved, senderNo);
     }
 
     //메시지 히스토리 (최신 N개, 이전 더보기 지원)
     @GetMapping("/rooms/{roomId}/messages")
-    public Page<ChatMessageRes> history(@PathVariable int roomId,
+    public Page<ChatMessageRes> history(@AuthenticationPrincipal(expression = "userNo") Integer meUserNo,
+                                     @PathVariable int roomId,
                                      @RequestParam(required = false) Integer beforeId,
                                      @RequestParam(defaultValue = "30") int size
                                      ){
-        return service.getMessages(roomId, beforeId, size).map(ChatMessageRes::from);
+        return service.getMessages(roomId, beforeId, size).map(m -> ChatMessageRes.from(m, meUserNo));
     }
 }

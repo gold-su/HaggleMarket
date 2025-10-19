@@ -28,12 +28,15 @@ public class ChatMessageRes {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+    private Integer currentUserNo;
+
     //엔티티 -> DTO 변환 정적 메서드.
-    public static ChatMessageRes from(ChatMessage m) {
+    public static ChatMessageRes from(ChatMessage m, Integer meUserNo) {
         return ChatMessageRes.builder()
                 .id(m.getId())
                 .roomId(m.getRoom().getId())
                 .senderNo(m.getSender() == null ? null : m.getSender().getUserNo()) //npe 위험 방지
+                .currentUserNo(meUserNo)
                 .content(m.getContent())
                 .type(m.getMsgType().name())
                 .status(m.getStatus().name())
