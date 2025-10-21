@@ -1,6 +1,8 @@
 package com.hagglemarket.marketweb.post.repository;
 
 import com.hagglemarket.marketweb.post.entity.Post;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +15,9 @@ public interface PostRepository extends JpaRepository<Post,Integer> {
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.images WHERE p.postId = :postId")
     Optional<Post> findByIdWithImages(@Param("postId") int postId);
 
+    @Query("SELECT p FROM Post p WHERE p.status <> 'DELETED'")
+    Page<Post> findAllActive(Pageable pageable);
+
     //카테고리아이디로 내림차순정렬
     List<Post> findByCategoryIdOrderByCreatedAtDesc(Integer categoryId);
 
@@ -22,4 +27,12 @@ public interface PostRepository extends JpaRepository<Post,Integer> {
     @Modifying
     @Query(value="UPDATE posts SET like_count = GREATEST(like_count - 1, 0) WHERE post_id=:postId", nativeQuery=true)
     int decrementLikeCount(@Param("postId") int postId);
+
+    @Query("""
+    SELECT p FROM Post p
+    WHERE p.user.userNo = :userNo
+      AND p.status <> 'DELETED'
+    ORDER BY p.createdAt DESC
+""")
+    List<Post> findActiveByUserNo(@Param("userNo") int userNo);
 }

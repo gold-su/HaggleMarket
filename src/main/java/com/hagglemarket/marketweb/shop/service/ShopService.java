@@ -1,5 +1,7 @@
 package com.hagglemarket.marketweb.shop.service;
 
+import com.hagglemarket.marketweb.auction.repository.AuctionPostRepository;
+import com.hagglemarket.marketweb.post.repository.PostRepository;
 import com.hagglemarket.marketweb.shop.dto.ShopProfileDto;
 import com.hagglemarket.marketweb.shop.dto.ShopProfileUpdateRequest;
 import com.hagglemarket.marketweb.shop.dto.ShopStatsDto;
@@ -22,6 +24,8 @@ public class ShopService {
     private final ShopRepository shopRepo;
     private final ShopStatsViewRepository statsRepo;
     private final UserRepository userRepo;  // ✅ 추가
+    private final PostRepository postRepository;          // ✅ 추가
+    private final AuctionPostRepository auctionRepository; // ✅ 추가
 
     @Transactional
     public ShopProfileDto getOrCreateProfile(int userNo) {

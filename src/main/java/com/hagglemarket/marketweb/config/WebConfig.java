@@ -19,9 +19,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        //"http://localhost:8080/uploads/파일명"으로 접근 가능하게 설정
+
+        // ✅ 중고 이미지 (C:/uploads/)
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:///C:/uploads/");
+
+        // ✅ 경매 이미지 (프로젝트 내부)
+        registry.addResourceHandler("/upload/**")
+                .addResourceLocations("file:upload/"); // ← 프로젝트 루트 경로 기준 상대경로
     }
 
 }

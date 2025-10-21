@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -93,4 +94,19 @@ public class PostController {
         postService.updatePost(postId, dto, user.getUserNo());
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<String> deletePost(@PathVariable int postId) {
+        // 🔹 로그인한 사용자 정보 가져오기
+        CustomUserDetails userDetails = (CustomUserDetails)
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        int userNo = userDetails.getUserNo();
+
+        // 🔹 삭제 처리 실행
+        postService.deletePost(postId, userNo);
+
+        return ResponseEntity.ok("게시글이 삭제되었습니다.");
+    }
+
 }

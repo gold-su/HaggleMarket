@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface UnifiedSearchRepository extends JpaRepository<Post, Integer> {
+
     @Query(
             value = """
         SELECT u.id, u.source, u.title, u.snippet, u.price, u.createdAt, u.hit, u.score,
@@ -31,10 +32,11 @@ public interface UnifiedSearchRepository extends JpaRepository<Post, Integer> {
               LIMIT 1) AS thumbnailUrl,
             NULL AS thumbnailId
           FROM posts p
-          WHERE (
-            (:useFullText = TRUE  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE))
-            OR (:useFullText = FALSE AND (p.title LIKE CONCAT('%', :q, '%') OR p.content LIKE CONCAT('%', :q, '%')))
-          )
+          WHERE p.status <> 'DELETED'
+            AND (
+              (:useFullText = TRUE  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE))
+              OR (:useFullText = FALSE AND (p.title LIKE CONCAT('%', :q, '%') OR p.content LIKE CONCAT('%', :q, '%')))
+            )
 
           UNION ALL
 
@@ -55,10 +57,11 @@ public interface UnifiedSearchRepository extends JpaRepository<Post, Integer> {
               ORDER BY ai.sort_order, ai.image_id
               LIMIT 1) AS thumbnailId
           FROM auction_posts a
-          WHERE (
-            (:useFullText = TRUE  AND MATCH(a.title, a.content) AGAINST (:q IN BOOLEAN MODE))
-            OR (:useFullText = FALSE AND (a.title LIKE CONCAT('%', :q, '%') OR a.content LIKE CONCAT('%', :q, '%')))
-          )
+          WHERE a.status <> 'DELETED'
+            AND (
+              (:useFullText = TRUE  AND MATCH(a.title, a.content) AGAINST (:q IN BOOLEAN MODE))
+              OR (:useFullText = FALSE AND (a.title LIKE CONCAT('%', :q, '%') OR a.content LIKE CONCAT('%', :q, '%')))
+            )
         ) u
         ORDER BY u.score DESC, u.createdAt DESC
         """,
@@ -66,17 +69,19 @@ public interface UnifiedSearchRepository extends JpaRepository<Post, Integer> {
         SELECT COUNT(*) FROM (
           SELECT p.post_id AS id
           FROM posts p
-          WHERE (
-            (:useFullText = TRUE  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE))
-            OR (:useFullText = FALSE AND (p.title LIKE CONCAT('%', :q, '%') OR p.content LIKE CONCAT('%', :q, '%')))
-          )
+          WHERE p.status <> 'DELETED'
+            AND (
+              (:useFullText = TRUE  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE))
+              OR (:useFullText = FALSE AND (p.title LIKE CONCAT('%', :q, '%') OR p.content LIKE CONCAT('%', :q, '%')))
+            )
           UNION ALL
           SELECT a.auction_id AS id
           FROM auction_posts a
-          WHERE (
-            (:useFullText = TRUE  AND MATCH(a.title, a.content) AGAINST (:q IN BOOLEAN MODE))
-            OR (:useFullText = FALSE AND (a.title LIKE CONCAT('%', :q, '%') OR a.content LIKE CONCAT('%', :q, '%')))
-          )
+          WHERE a.status <> 'DELETED'
+            AND (
+              (:useFullText = TRUE  AND MATCH(a.title, a.content) AGAINST (:q IN BOOLEAN MODE))
+              OR (:useFullText = FALSE AND (a.title LIKE CONCAT('%', :q, '%') OR a.content LIKE CONCAT('%', :q, '%')))
+            )
         ) c
         """,
             nativeQuery = true

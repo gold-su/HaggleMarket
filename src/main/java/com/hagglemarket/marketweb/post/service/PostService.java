@@ -2,6 +2,7 @@ package com.hagglemarket.marketweb.post.service;
 
 import com.hagglemarket.marketweb.category.entity.Category;
 import com.hagglemarket.marketweb.category.repository.CategoryRepository;
+import com.hagglemarket.marketweb.enddeal.service.EndDealService;
 import com.hagglemarket.marketweb.post.dto.*;
 import com.hagglemarket.marketweb.post.entity.Post;
 import com.hagglemarket.marketweb.post.entity.PostImage;
@@ -36,6 +37,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final PostLikeRepository postLikeRepository;
+    private final EndDealService endDealService;
 
     public PostResponseDto createPost(PostRequestDto dto) {
         int userNo = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserNo();
@@ -93,7 +95,7 @@ public class PostService {
     }
 
     public Page<PostCardDto> getPostCards(Pageable pageable) {
-        Page<Post> posts = postRepository.findAll(pageable);
+        Page<Post> posts = postRepository.findAllActive(pageable);
 
         return posts.map(post -> {
             String thumbnail = post.getImages().isEmpty() ? null : post.getImages().get(0).getImageUrl();
@@ -104,11 +106,12 @@ public class PostService {
                     .cost(post.getCost())
                     .thumbnail(thumbnail)
                     .status(post.getProductStatus()) // enum 그대로 사용
-                    .liked(false)                    // 추후 로그인 유저 좋아요 연동
-                    .tags(null)                      // 추후 태그 연동
+                    .liked(false)
+                    .tags(null)
                     .build();
         });
     }
+
 
     @Transactional(readOnly = true)
     public PostDetailResponse getPostDetail(int postId, Integer viewerUserNo) {
@@ -251,4 +254,34 @@ public class PostService {
             }
         }
     }
+
+    @Transactional
+    public void deletePost(int postId, int userNo) {
+        // 1️⃣ 게시글 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        // 2️⃣ 작성자 본인 검증
+        if (post.getUser().getUserNo() != userNo) {
+            throw new RuntimeException("삭제 권한이 없습니다.");
+        }
+
+        // 3️⃣ 논리 삭제 처리 (status 변경)
+        post.setStatus(Post.Poststatus.DELETED);
+        postRepository.save(post);
+
+        // 4️⃣ end_deal 기록 저장 (EndDealService 구조에 맞춤)
+        endDealService.recordEndDeal(
+                "used",                    // type : 중고거래
+                post.getPostId(),          // itemId
+                post.getUser().getUserNo(),// userNo
+                post.getTitle(),           // title
+                post.getCost(),            // finalPrice
+                "판매자 삭제",               // reason
+                "DELETED"                  // status
+        );
+
+        log.info("게시글 {} 삭제 완료 (status=DELETED)", postId);
+    }
+
 }
