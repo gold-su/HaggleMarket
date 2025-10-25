@@ -83,23 +83,39 @@ public class ShopService {
                 .build();
     }
 
+    @Transactional
+    public void updateIntro(int userNo, String intro) {
+        Shop shop = shopRepo.findByUserNo(userNo)
+                .orElseThrow(() -> new RuntimeException("Shop not found"));
+        shop.setIntro(intro);
+    }
+
     private long nz(Long v) { return v == null ? 0L : v; }
     private BigDecimal nzb(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
     private BigDecimal scale2(BigDecimal v) { return v.setScale(2, RoundingMode.HALF_UP); }
 
     private ShopProfileDto toDto(Shop s) {
-        // ✅ User 테이블에서 nickname을 가져오도록 수정
-        String nickname = userRepo.findById(s.getUserNo())
-                .map(User::getNickName)
-                .orElse("사용자");
+        // ✅ User 엔티티 조회
+        User user = userRepo.findById(s.getUserNo())
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
         return ShopProfileDto.builder()
                 .userNo(s.getUserNo())
-                .nickname(nickname)  // ✅ user nickname 사용
+                .nickname(user.getNickName()) // ✅ 항상 최신 닉네임 사용
                 .intro(s.getIntro())
-                .profileUrl(s.getProfileUrl())
+                // ✅ 핵심 수정 부분: Shop에 없으면 User.imageURL 사용
+                .profileUrl(
+                        s.getProfileUrl() != null ? s.getProfileUrl() : user.getImageURL()
+                )
                 .verified(s.isVerified())
                 .storeOpenedAt(s.getOpenedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ShopProfileDto getShopProfile(int userNo) {
+        Shop shop = shopRepo.findByUserNo(userNo)
+                .orElseThrow(() -> new RuntimeException("Shop not found"));
+        return toDto(shop);
     }
 }

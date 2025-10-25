@@ -4,10 +4,15 @@ import com.hagglemarket.marketweb.shop.dto.*;
 import com.hagglemarket.marketweb.shop.service.ProductQueryService;
 import com.hagglemarket.marketweb.shop.service.ShopService;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
+import com.hagglemarket.marketweb.shop.service.ShopVisitService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/shops")
@@ -15,10 +20,17 @@ import org.springframework.web.bind.annotation.*;
 public class ShopController {
     private final ShopService shopService;
     private final ProductQueryService productQueryService;
+    private final ShopVisitService shopVisitService;
 
     // 공개: 상점 프로필
     @GetMapping("/{userNo}")
-    public ShopProfileDto getShop(@PathVariable int userNo) {
+    public ShopProfileDto getShop(
+            @PathVariable int userNo,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        //방문 기록 추가
+        shopVisitService.recordVisit(userNo, user != null ? user.getUserNo() : null);
+
         return shopService.getProfile(userNo);
     }
 
@@ -51,5 +63,26 @@ public class ShopController {
     public void updateMe(@AuthenticationPrincipal CustomUserDetails me,
                          @RequestBody ShopProfileUpdateRequest req) {
         shopService.updateProfile(me.getUserNo(), req);
+    }
+
+    @PutMapping("/{userNo}/intro")
+    public ResponseEntity<Void> updateIntro(
+            @PathVariable int userNo,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        if (user == null || user.getUserNo() != userNo) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String intro = body.get("intro");
+        shopService.updateIntro(userNo, intro);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{userNo}/detail")
+    public ResponseEntity<ShopProfileDto> getShopProfile(@PathVariable int userNo) {
+        ShopProfileDto profile = shopService.getShopProfile(userNo);
+        return ResponseEntity.ok(profile);
     }
 }

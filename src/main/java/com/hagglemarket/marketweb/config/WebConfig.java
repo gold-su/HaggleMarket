@@ -20,13 +20,21 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-        // ✅ 중고 이미지 (C:/uploads/)
+        registry.addResourceHandler("/uploads/posts/**")
+                .addResourceLocations("file:///C:/uploads/posts/");
+
+        //프로필 및 경매 이미지 (프로젝트 내부 uploads)
+        registry.addResourceHandler("/uploads/profile/**")
+                .addResourceLocations("file:uploads/profile/");
+
+        registry.addResourceHandler("/uploads/auction/**")
+                .addResourceLocations("file:uploads/auction/");
+
+        //혹시 몰라 전체 uploads 폴더 통합 등록 (보조용)
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:///C:/uploads/");
-
-        // ✅ 경매 이미지 (프로젝트 내부)
-        registry.addResourceHandler("/upload/**")
-                .addResourceLocations("file:upload/"); // ← 프로젝트 루트 경로 기준 상대경로
+                .addResourceLocations(
+                        "file:///C:/uploads/",
+                        "file:uploads/"
+                );
     }
-
 }
