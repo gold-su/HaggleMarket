@@ -30,6 +30,7 @@ left join PostImage pi on pi.post = p
       select min(pi3.imageNo) from PostImage pi3 where pi3.post = p
   )
 where pl.userNo = :userNo
+  and (p.status is null or p.status <> 'DELETED')
 order by pl.createdAt desc
 """)
     List<LikeItemDto> findMyLikes(int userNo);
@@ -57,6 +58,7 @@ left join AuctionImage ai on ai.auctionPost = a
       select min(ai2.imageId) from AuctionImage ai2 where ai2.auctionPost = a
   )
 where pl.userNo = :userNo
+  and (a.status is null or a.status <> 'DELETED')
 order by pl.createdAt desc
 """)
     List<LikeItemDto> findMyAuctionLikes(int userNo);
