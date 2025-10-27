@@ -59,6 +59,7 @@ public class SecurityConfig {
 
 
                         ).permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         // 좋아요(B안): 모두 인증 필요
                         .requestMatchers(HttpMethod.GET,    "/api/products/{postId}/like/me").authenticated()
                         .requestMatchers(HttpMethod.POST,   "/api/products/{postId}/like").authenticated()
@@ -106,8 +107,15 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("/uploads/**");
+        return (web) -> web.ignoring().requestMatchers(
+                "/uploads/**",
+                "/api/auction/images/**",
+                "/css/**",
+                "/js/**",
+                "/images/**"
+        );
     }
+
 
 }
 
