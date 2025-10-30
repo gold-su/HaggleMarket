@@ -24,6 +24,8 @@ public class AuctionDetailDTO {
     private List<String> imagesUrls; //이미지
 
     private String sellerNickname;
+    private Integer sellerUserId;
+
     private String winnerNickname;
     private int hit;        //조회수
     private int bidCount;   //입찰 횟수

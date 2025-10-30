@@ -143,6 +143,7 @@ public class AuctionPostService {
                 .startTime(post.getStartTime())
                 .endTime(post.getEndTime())
                 .imagesUrls(imageUrls)
+                .sellerUserId(post.getSeller().getUserNo())
                 .sellerNickname(post.getSeller().getNickName())
                 .winnerNickname(post.getWinner() == null ? null : post.getWinner().getNickName()) //null일 수 있음
                 .hit(post.getHit())
