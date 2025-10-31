@@ -42,4 +42,5 @@ WHERE r.roomKind = :k
 """)
     Optional<ChatRoom> findByRoomKindAndUserPair(RoomKind k, Integer u1, Integer u2);
 
+    Optional<ChatRoom> findByRoomKindAndBuyer_UserNo(RoomKind kind, Integer buyerUserNo);
 }

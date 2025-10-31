@@ -1,0 +1,6 @@
+openai:
+  api-key: ${OPENAI_API_KEY}   # ✅ 환경변수에서 값 주입 (파일에 값 없음)
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:default}  # 선택

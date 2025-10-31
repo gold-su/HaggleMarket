@@ -3,6 +3,7 @@ package com.hagglemarket.marketweb.chat.controller;
 import com.hagglemarket.marketweb.auction.service.AuctionService;
 import com.hagglemarket.marketweb.chat.dto.ChatRoomRes;
 import com.hagglemarket.marketweb.chat.dto.CreateRoomReq;
+import com.hagglemarket.marketweb.chat.enums.RoomKind;
 import com.hagglemarket.marketweb.chat.repository.ChatMessageRepository;
 import com.hagglemarket.marketweb.chat.service.ChatRoomService;
 import com.hagglemarket.marketweb.post.service.PostService;
@@ -34,15 +35,19 @@ public class ChatRoomController {
             case POST -> req.getPostId();
             case AUCTION -> req.getAuctionId();
             case ORDER -> req.getOrderId();
+            case BOT -> null;
         };
-        if(resourceId == null) throw new IllegalArgumentException("resource id is required for " + req.getRoomKind());
-
+        // BOT은 resourceId 필요 없음
+        if (req.getRoomKind() != RoomKind.BOT && resourceId == null) {
+            throw new IllegalArgumentException("resource id is required for " + req.getRoomKind());
+        }
         //판매자 userNo 조합
         //판매자 userNo를 서버 내부에서 조회
         Integer sellerUserNo = switch (req.getRoomKind()){
             case POST -> postService.getSellerUserNoByPostId(resourceId);
             case AUCTION -> auctionService.getSellerUserNoByAuctionId(resourceId);
             case ORDER -> me.getUserNo(); // AI 방이라면 자기 자신 기준으로 생성
+            case BOT -> null;
         };
 
         //방 생성 or 기존 방 재사용

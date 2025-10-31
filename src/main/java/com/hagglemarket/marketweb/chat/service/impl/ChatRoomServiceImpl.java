@@ -11,6 +11,7 @@ import com.hagglemarket.marketweb.chat.repository.ChatRoomRepository;
 import com.hagglemarket.marketweb.chat.service.ChatRoomService;
 import com.hagglemarket.marketweb.user.entity.User;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
+import com.hagglemarket.marketweb.user.service.BotUserSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.*;
@@ -45,9 +47,15 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final ChatRoomMemberRepository memberRepo;
     private final UserRepository userRepo;
     private final ChatMessageRepository chatMessageRepo;
+    private final BotUserSupport botUserSupport;
 
     @Override @Transactional //이 메서드 안의 DB 작업(조회 -> 저장 -> 후처리)을 하나의 트랜잭션으로 묶어 보장.
     public ChatRoom findOrCreate(RoomKind kind, Integer resourceId, Integer sellerUserNo, Integer buyerUserNo){
+
+        //챗봇 전용방 별도 처리
+        if(kind == RoomKind.BOT){
+            return getOrCreateBotRoom(buyerUserNo);
+        }
 
         //양방향 동일 유저 쌍 검사
         var pairExisting = roomRepo.findByRoomKindAndUserPair(kind, sellerUserNo, buyerUserNo);
@@ -77,6 +85,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
             case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
             case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
+            default -> Optional.empty();
         };
         if (existing.isPresent()) {
             return existing.get(); // 이미 방이 있으면 바로 반환
@@ -126,6 +135,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                         .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
                 case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
                         .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
+                default -> throw new ResponseStatusException(CONFLICT, "invalid room type");
             };
         }
     }
@@ -175,5 +185,28 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             m.setUser(user);
             return memberRepo.save(m);
         });
+    }
+
+    //챗봇 전용 방 자동 생성
+    //로그인 시 호출 OR 서버 부팅 후 1회 호출
+    public ChatRoom getOrCreateBotRoom(Integer userNo){
+        return roomRepo.findByRoomKindAndBuyer_UserNo(RoomKind.BOT, userNo)
+                .orElseGet(()->{
+                    User buyer = userRepo.findById(userNo)
+                            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
+                    User bot = botUserSupport.getOrCreateBotUser();
+
+                    ChatRoom botRoom = new ChatRoom();
+                    botRoom.setRoomKind(RoomKind.BOT);
+                    botRoom.setBuyer(buyer);
+                    botRoom.setSeller(bot);
+                    botRoom.setStatus(RoomStatus.ACTIVE);
+
+                    ChatRoom saved = roomRepo.save(botRoom);
+                    ensureMember(saved, buyer);
+                    ensureMember(saved, bot);
+
+                    return roomRepo.save(botRoom);
+                });
     }
 }

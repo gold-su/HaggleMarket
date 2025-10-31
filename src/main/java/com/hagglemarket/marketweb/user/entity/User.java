@@ -70,4 +70,19 @@ public class User {
 
     @Column(name = "road_rating")
     private BigDecimal roadRating;
+
+    public static User createBot(String botUserId, String botNick, String imageUrl){
+        return User.builder()
+                .userId(botUserId)
+                .userName(botNick)
+                .nickName(botNick)
+                .password("N/A")
+                .phoneNumber("00000000000")
+                .address("SYSTEM")
+                .email(botNick +"@hagglemarket.com")
+                .rating(BigDecimal.ZERO)
+                .status(UserStatus.ACTIVE)
+                .imageURL(imageUrl)
+                .build();
+    }
 }

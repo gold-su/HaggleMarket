@@ -29,7 +29,7 @@ public class ChatMessage {
     @Enumerated(EnumType.STRING) @Column(name="msg_type", nullable=false)
     private MessageType msgType = MessageType.CHAT; //CHAT | SYSTEM 구분(문자열 저장). enum 순서 변경에도 안전.
 
-    @Lob @Column(name = "content", columnDefinition = "TEXT")
+    @Lob @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content; //본문. @Lob -> MySQL 에선 LONGTEXT / TEXT 류로 매핑. 긴 메시지/시스템 JSON 문자열도 수용
 
     @Column(name="client_msg_id")

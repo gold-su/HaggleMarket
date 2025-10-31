@@ -1,19 +1,25 @@
 package com.hagglemarket.marketweb.chat.service.impl;
 
+import com.hagglemarket.marketweb.ai.controller.AiChatController;
 import com.hagglemarket.marketweb.chat.domain.entity.ChatMessage;
 import com.hagglemarket.marketweb.chat.domain.entity.ChatRoom;
 import com.hagglemarket.marketweb.chat.enums.MessageStatus;
 import com.hagglemarket.marketweb.chat.enums.MessageType;
+import com.hagglemarket.marketweb.chat.enums.RoomKind;
 import com.hagglemarket.marketweb.chat.repository.ChatMessageRepository;
 import com.hagglemarket.marketweb.chat.repository.ChatRoomRepository;
 import com.hagglemarket.marketweb.chat.service.ChatMessageService;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
+import com.hagglemarket.marketweb.user.service.BotUserSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 //채팅 메시지 전송과 메시지 페이지 조회를 담당하는 서비스.
@@ -27,6 +33,9 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ChatMessageRepository messageRepo;
     private final ChatRoomRepository roomRepo;
     private final UserRepository userRepo;
+
+    private final BotUserSupport botUserSupport;
+    private final AiChatController aiChatController;
 
     @Override @Transactional
     public ChatMessage sendChat(int roomId, int senderNo, String content, Long clientMsgId){
@@ -45,6 +54,39 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         try{
             ChatMessage saved = messageRepo.save(m);
             messageRepo.touchRoomUpdatedAt(roomId);
+            //봇 채팅방이면 AI 응답 자동 생성
+            if (room.getRoomKind() == RoomKind.BOT){
+                try {
+                    ResponseEntity<Map<String, String>> aiResponse =
+                            aiChatController.faq(Map.of("message",content));
+                    System.out.println("[AI RESPONSE RAW]"+aiResponse);
+                    if (aiResponse.getBody() != null)
+                        System.out.println("[AI ANSWER] " + aiResponse.getBody().get("answer"));
+
+                    String botAnswer = aiResponse.getBody() != null ? aiResponse.getBody().get("answer") : null;
+                    if (botAnswer == null) botAnswer = "해글봇 응답을 불러오지 못했습니다.";
+
+                    ChatMessage botMsg = new ChatMessage();
+                    botMsg.setRoom(room);
+                    botMsg.setSender(botUserSupport.getOrCreateBotUser());
+                    botMsg.setMsgType(MessageType.CHAT);
+                    botMsg.setContent(botAnswer);
+                    botMsg.setStatus(MessageStatus.NORMAL);
+
+                    messageRepo.save(botMsg);
+                    messageRepo.touchRoomUpdatedAt(roomId);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    ChatMessage errorMsg = new ChatMessage();
+                    errorMsg.setRoom(room);
+                    errorMsg.setSender(botUserSupport.getOrCreateBotUser());
+                    errorMsg.setMsgType(MessageType.CHAT);
+                    errorMsg.setContent("해글봇 오류 : 잠시 후 다시 시도해주세요.");
+                    errorMsg.setStatus(MessageStatus.NORMAL);
+                    messageRepo.save(errorMsg);
+                }
+            }
+
             return saved;
         }catch(DataIntegrityViolationException e) {
             //uq_client_dedup에 걸린 중복 전송이면 최신 것 반환

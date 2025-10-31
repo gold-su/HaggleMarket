@@ -13,17 +13,36 @@ public class WebConfig implements WebMvcConfigurer {
                 //리액트에서 부여된 포트를 설정함
                 .allowedOrigins("http://localhost:5173", "http://localhost:3000")
                 //리액트에서 사용하게될 각각의 API들을 허용하는 함수
-                .allowedMethods("GET", "POST", "PUT", "DELETE")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowCredentials(true);
     }
 
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/uploads/**")
+//                // 실제 PC 경로에 맞게 수정
+//                .addResourceLocations("file:///C:/Users/pds02/IdeaProjects/HaggleMarket/uploads/");
+//    }
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        registry.addResourceHandler("/uploads/posts/")
+                .addResourceLocations("file:///C:/uploads/posts/");
+
+        //프로필 및 경매 이미지 (프로젝트 내부 uploads)
+        registry.addResourceHandler("/uploads/profile/")
+                .addResourceLocations("file:uploads/profile/");
+
+        registry.addResourceHandler("/uploads/auction/")
+                .addResourceLocations("file:uploads/auction/");
+
+        //혹시 몰라 전체 uploads 폴더 통합 등록 (보조용)
         registry.addResourceHandler("/uploads/**")
-                // 실제 PC 경로에 맞게 수정
-                .addResourceLocations("file:///C:/Users/pds02/IdeaProjects/HaggleMarket/uploads/");
+                .addResourceLocations(
+                        "file:///C:/uploads/",
+                        "file:uploads/"
+                );
     }
-
-
 
 }
