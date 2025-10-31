@@ -23,10 +23,13 @@ public class AuctionDetailDTO {
 
     private List<String> imagesUrls; //이미지
 
+    private Integer sellerUserId;           //채팅방 생성시 필요
     private String sellerNickname;
-    private Integer sellerUserId;
+    private String sellerAddress;           //프론트에서 표시용
+    private String sellerProfileImageUrl;   //프론트에서 표시용
 
     private String winnerNickname;
+
     private int hit;        //조회수
     private int bidCount;   //입찰 횟수
 }

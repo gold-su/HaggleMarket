@@ -284,4 +284,10 @@ public class PostService {
         log.info("게시글 {} 삭제 완료 (status=DELETED)", postId);
     }
 
+
+    public Integer getSellerUserNoByPostId(Integer postId) {
+        return postRepository.findById(postId)
+                .map(p -> p.getUser().getUserNo())
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+    }
 }

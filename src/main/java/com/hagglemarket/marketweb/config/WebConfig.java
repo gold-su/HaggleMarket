@@ -13,7 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
                 //리액트에서 부여된 포트를 설정함
                 .allowedOrigins("http://localhost:5173", "http://localhost:3000")
                 //리액트에서 사용하게될 각각의 API들을 허용하는 함수
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowCredentials(true);
     }
 
@@ -37,4 +37,5 @@ public class WebConfig implements WebMvcConfigurer {
                         "file:uploads/"
                 );
     }
+
 }

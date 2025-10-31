@@ -35,6 +35,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String userid = null;
         String jwtToken;
+        
+        //uploads, /api/auction/images/ 경로는 JWT 필터 건너뛰기
+        //정적 리소스 및 이미지 요청은 JWT 검사 제외
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/uploads/") || uri.startsWith("/api/auction/images/") ||
+                uri.startsWith("/js/") || uri.startsWith("/images/") || uri.startsWith("/css/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwtToken = authHeader.substring(7);
