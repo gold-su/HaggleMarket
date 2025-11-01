@@ -9,6 +9,8 @@ import com.hagglemarket.marketweb.post.repository.PostImageRepository;
 import com.hagglemarket.marketweb.post.repository.PostRepository;
 import com.hagglemarket.marketweb.postlike.repository.PostLikeRepository;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
+import com.hagglemarket.marketweb.shop.entity.Shop;
+import com.hagglemarket.marketweb.shop.repository.ShopRepository;
 import com.hagglemarket.marketweb.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -36,6 +38,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final PostLikeRepository postLikeRepository;
+    private final ShopRepository shopRepository;
 
     public PostResponseDto createPost(PostRequestDto dto) {
         int userNo = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserNo();
@@ -119,10 +122,9 @@ public class PostService {
 
         // === 찜 관련 ===
         boolean likedByMe = false;
-        int likeCount = (int) postLikeRepository.countByPostId(postId); // ✅ postId 기반
-
+        int likeCount = (int) postLikeRepository.countByPostId(postId);
         if (viewerUserNo != null) {
-            likedByMe = postLikeRepository.existsByUserNoAndPostId(viewerUserNo, postId); // ✅ userNo, postId 기반
+            likedByMe = postLikeRepository.existsByUserNoAndPostId(viewerUserNo, postId);
         }
 
         // === 이미지 목록 ===
@@ -137,6 +139,19 @@ public class PostService {
             Category large = middle.getParent();
             categoryPath = large.getName() + " > " + middle.getName() + " > " + small.getName();
         }
+
+        // === 🧩 판매자 상점 정보 ===
+        Shop shop = shopRepository.findByUserNo(post.getUser().getUserNo()).orElse(null);
+
+        PostDetailResponse.SellerInfo sellerInfo = PostDetailResponse.SellerInfo.builder()
+                .userNo(post.getUser().getUserNo())
+                .nickname(shop != null ? shop.getNickname() : post.getUser().getNickName())
+                .profileUrl(shop != null ? shop.getProfileUrl() : post.getUser().getImageURL())
+                .verified(shop != null && shop.isVerified())
+                .storeOpenedAt(shop != null ? shop.getOpenedAt() : null)
+                .address(post.getUser().getAddress())
+                .rating(post.getUser().getRating())
+                .build();
 
         return PostDetailResponse.builder()
                 .postId(post.getPostId())
@@ -154,11 +169,12 @@ public class PostService {
                 .categoryId(post.getCategoryId())
                 .categoryPath(categoryPath)
                 .images(imageUrls)
-                .seller(new PostDetailResponse.SellerInfo(post.getUser()))
+                .seller(sellerInfo) // ✅ 상점 정보 포함된 판매자
                 .likedByMe(likedByMe)
                 .likeCount(likeCount)
                 .build();
     }
+
 
 //    @Transactional
 //    public void increaseHit(Integer postId, HttpServletRequest request, CustomUserDetails user) {

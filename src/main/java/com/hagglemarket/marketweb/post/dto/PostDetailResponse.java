@@ -4,6 +4,7 @@ import com.hagglemarket.marketweb.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,19 +34,15 @@ public class PostDetailResponse {
     private int likeCount;
 
     @Getter
+    @Builder
+    @AllArgsConstructor
     public static class SellerInfo {
         private final int userNo;
-        private final String nickName;
+        private final String nickname;
+        private final String profileUrl;
+        private final boolean verified;
+        private final LocalDateTime storeOpenedAt;
         private final String address;
         private final BigDecimal rating;
-        private final String imageURL;
-
-        public SellerInfo(User user) {
-            this.userNo = user.getUserNo();
-            this.nickName = user.getNickName();
-            this.address = user.getAddress();
-            this.rating = user.getRating();
-            this.imageURL = user.getImageURL();
-        }
     }
 }

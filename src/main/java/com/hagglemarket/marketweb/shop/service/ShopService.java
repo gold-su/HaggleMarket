@@ -84,16 +84,21 @@ public class ShopService {
     private BigDecimal scale2(BigDecimal v) { return v.setScale(2, RoundingMode.HALF_UP); }
 
     private ShopProfileDto toDto(Shop s) {
-        // ✅ User 테이블에서 nickname을 가져오도록 수정
-        String nickname = userRepo.findById(s.getUserNo())
-                .map(User::getNickName)
-                .orElse("사용자");
+        // ✅ User 정보 가져오기 (닉네임 + 프로필 이미지)
+        var userOpt = userRepo.findById(s.getUserNo());
+        String nickname = userOpt.map(User::getNickName).orElse("사용자");
+        String profileUrl = userOpt.map(User::getImageURL).orElse(null); // ✅ 추가
+
+        // ✅ shop.profileUrl이 null일 경우 user.imageUrl로 대체
+        if (s.getProfileUrl() != null && !s.getProfileUrl().isBlank()) {
+            profileUrl = s.getProfileUrl();
+        }
 
         return ShopProfileDto.builder()
                 .userNo(s.getUserNo())
-                .nickname(nickname)  // ✅ user nickname 사용
+                .nickname(nickname)
                 .intro(s.getIntro())
-                .profileUrl(s.getProfileUrl())
+                .profileUrl(profileUrl) // ✅ 여기!
                 .verified(s.isVerified())
                 .storeOpenedAt(s.getOpenedAt())
                 .build();

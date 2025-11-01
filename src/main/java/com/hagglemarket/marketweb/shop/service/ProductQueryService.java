@@ -38,8 +38,10 @@ public class ProductQueryService {
             String sql =
                     "SELECT 'auction' AS mode, ap.auction_id AS id, ap.title, ap.current_cost AS cost, " +
                             "       ap.like_count, " +
-                            "       (SELECT api.image_name FROM auction_post_images api " +
-                            "         WHERE api.auction_id = ap.auction_id ORDER BY api.sort_order ASC LIMIT 1) AS thumbnailUrl, " +
+                            // ✅ 올바른 테이블 및 컬럼 참조
+                            "       (SELECT CAST(MIN(api.image_id) AS CHAR) " +
+                            "          FROM auction_post_images api " +
+                            "         WHERE api.auction_id = ap.auction_id) AS thumbnailUrl, " +
                             "       ap.created_at, ap.end_time AS endsAt, ap.status, ap.hit " +
                             "FROM auction_posts ap " +
                             "WHERE ap.user_no = ?1 " +

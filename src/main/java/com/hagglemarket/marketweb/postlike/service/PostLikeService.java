@@ -86,8 +86,19 @@ public class PostLikeService {
 
     @Transactional(readOnly = true)
     public List<LikeItemDto> getMyAuctionLikes(int userNo) {
-        return postLikeRepository.findMyAuctionLikes(userNo);
+        List<LikeItemDto> list = postLikeRepository.findMyAuctionLikes(userNo);
+
+        // 경매 이미지 URL 덧붙이기
+        list.forEach(like -> {
+            String thumb = like.getThumbnail();
+            if (thumb != null && !thumb.isBlank() && !thumb.startsWith("/api/auction/images/")) {
+                like.setThumbnail("/api/auction/images/" + thumb);
+            }
+        });
+
+        return list;
     }
+
 
     @Transactional(readOnly = true)
     public List<LikeItemDto> getMyLikes(int userNo, int limit) {

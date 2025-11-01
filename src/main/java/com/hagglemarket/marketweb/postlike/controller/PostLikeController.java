@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,16 +41,16 @@ public class PostLikeController {
     }
 
     @GetMapping("/likes/sidebar")
-    public List<LikeItemDto> getSidebarLikes(@AuthenticationPrincipal CustomUserDetails user,
-                                             @RequestParam(defaultValue = "20") int limit) {
+    public List<LikeItemDto> getSidebarLikes(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam(defaultValue = "20") int limit) {
         if (user == null) return List.of();
 
-        // 일반 찜 + 경매 찜 둘 다 합치기
-        List<LikeItemDto> postLikes = postLikeService.getMyLikes(user.getUserNo(), limit);
+        List<LikeItemDto> postLikes = new ArrayList<>(postLikeService.getMyLikes(user.getUserNo(), limit));
         List<LikeItemDto> auctionLikes = postLikeService.getMyAuctionLikes(user.getUserNo());
-
-        // 병합 후 최근순 정렬 (createdAt 기준은 없으니 단순히 합치기)
         postLikes.addAll(auctionLikes);
+
         return postLikes;
     }
+
 }
