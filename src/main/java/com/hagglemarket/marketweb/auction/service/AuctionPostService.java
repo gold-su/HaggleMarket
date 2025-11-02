@@ -63,15 +63,25 @@ public class AuctionPostService {
 
 
     public List<AuctionListDTO> getAuctionList() {
-        List<AuctionPost> posts = auctionPostRepository.findAll(); //필요한 조회 쿼리
+        // 1️⃣ 종료되지 않은 경매 (종료 임박 순)
+        List<AuctionPost> ongoing = auctionPostRepository.findOngoingSortedByEndTime();
 
-        return posts.stream().map(post -> {
+        // 2️⃣ 종료된 경매 (최근 종료 순)
+        List<AuctionPost> ended = auctionPostRepository.findEndedSorted();
+
+        // 3️⃣ 두 리스트 병합
+        List<AuctionPost> all = new java.util.ArrayList<>();
+        all.addAll(ongoing);
+        all.addAll(ended);
+
+        // 4️⃣ DTO 변환
+        return all.stream().map(post -> {
             String thumbnailUrl = null;
 
-            //첫 번째 이미지가 있다면 URL 생성
-            if(!post.getImages().isEmpty()) {
+            if (!post.getImages().isEmpty()) {
                 int firstImageId = post.getImages()
-                        .stream().min(Comparator.comparingInt(AuctionImage::getSortOrder))
+                        .stream()
+                        .min(Comparator.comparingInt(AuctionImage::getSortOrder))
                         .get()
                         .getImageId();
                 thumbnailUrl = "/api/auction/images/" + firstImageId;

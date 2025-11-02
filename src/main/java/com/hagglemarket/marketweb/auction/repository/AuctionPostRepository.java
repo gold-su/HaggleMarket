@@ -39,4 +39,17 @@ public interface AuctionPostRepository extends JpaRepository<AuctionPost, Intege
     @Modifying
     @Query("UPDATE AuctionPost a SET a.likeCount = a.likeCount - 1 WHERE a.auctionId = :auctionId")
     void decrementLikeCount(@Param("auctionId") int auctionId);
+
+    @Query("SELECT p FROM AuctionPost p " +
+            "LEFT JOIN FETCH p.images i " +
+            "WHERE p.status <> com.hagglemarket.marketweb.auction.entity.AuctionStatus.ENDED " +
+            "ORDER BY p.endTime ASC")
+    List<AuctionPost> findOngoingSortedByEndTime();
+
+    @Query("SELECT p FROM AuctionPost p " +
+            "LEFT JOIN FETCH p.images i " +
+            "WHERE p.status = com.hagglemarket.marketweb.auction.entity.AuctionStatus.ENDED " +
+            "ORDER BY p.endTime DESC")
+    List<AuctionPost> findEndedSorted();
+
 }
