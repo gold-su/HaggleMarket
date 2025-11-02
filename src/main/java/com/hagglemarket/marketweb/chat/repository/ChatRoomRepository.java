@@ -42,5 +42,16 @@ WHERE r.roomKind = :k
 """)
     Optional<ChatRoom> findByRoomKindAndUserPair(RoomKind k, Integer u1, Integer u2);
 
+    //유저의 쌍으로 비교하여 채팅방 찾기
+    @Query("""
+SELECT r FROM ChatRoom r
+WHERE ((r.seller.userNo = :u1 AND r.buyer.userNo = :u2)
+    OR (r.seller.userNo = :u2 AND r.buyer.userNo = :u1))
+""")
+    Optional<ChatRoom> findByUserPair(Integer u1, Integer u2);
+
+
     Optional<ChatRoom> findByRoomKindAndBuyer_UserNo(RoomKind kind, Integer buyerUserNo);
+
+
 }

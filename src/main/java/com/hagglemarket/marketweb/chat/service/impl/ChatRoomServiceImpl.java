@@ -58,17 +58,23 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         }
 
         //양방향 동일 유저 쌍 검사
-        var pairExisting = roomRepo.findByRoomKindAndUserPair(kind, sellerUserNo, buyerUserNo);
-        if(pairExisting.isPresent()){
-            return pairExisting.get(); //이미 존재 -> 그대로 반환 (새로 생성 안 함)
-        }
+//        var pairExisting = roomRepo.findByRoomKindAndUserPair(kind, sellerUserNo, buyerUserNo);
+//        if(pairExisting.isPresent()){
+//            return pairExisting.get(); //이미 존재 -> 그대로 반환 (새로 생성 안 함)
+//        }
+
 
         //필수 인자가 빠지면 400
         if(sellerUserNo == null || buyerUserNo == null) throw new ResponseStatusException(BAD_REQUEST,"seller/buyer required");
         //판매자 = 구매자면 비즈니스 정책 위반으로 400
         if(sellerUserNo.equals(buyerUserNo)) throw new ResponseStatusException(BAD_REQUEST,"seller == buyer not allowed");
-        //어떤 리소스(게시글/경매/주문)인지 식별하는 resourceId 필수.
-        if(resourceId == null) throw new ResponseStatusException(BAD_REQUEST,"resource id required");
+//        //어떤 리소스(게시글/경매/주문)인지 식별하는 resourceId 필수.
+//        if(resourceId == null) throw new ResponseStatusException(BAD_REQUEST,"resource id required");
+
+        //기존 방 찾기(게시글, 경매 상관없이 사람 쌍으로만)
+        Optional<ChatRoom> existing = roomRepo.findByUserPair(sellerUserNo, buyerUserNo);
+        if(existing.isPresent()) return existing.get();
+
 
         // 1) 존재하면 재사용 (유니크 정책과 동일 조회)
         // 중복 방 방지 : 동일한 (종류, 대상 ID, seller. buyer) 조합은 하나의 방만 유지하려는 설계.
@@ -81,15 +87,15 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 //        };
 //        if(existing.isPresent()) return existing.get();
         //중복 방 조회
-        Optional<ChatRoom> existing = switch (kind) {
-            case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
-            case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
-            case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
-            default -> Optional.empty();
-        };
-        if (existing.isPresent()) {
-            return existing.get(); // 이미 방이 있으면 바로 반환
-        }
+//        Optional<ChatRoom> existing = switch (kind) {
+//            case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
+//            case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
+//            case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo);
+//            default -> Optional.empty();
+//        };
+//        if (existing.isPresent()) {
+//            return existing.get(); // 이미 방이 있으면 바로 반환
+//        }
 
 
         // 2) 리소스/판매자 검증 (가능하면)
@@ -124,19 +130,23 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             ensureMember(saved, buyer);
             return saved;
         } catch (DataIntegrityViolationException e){
+            //동시성 출동 시 재조회
+            return roomRepo.findByRoomKindAndUserPair(kind, sellerUserNo, buyerUserNo)
+                    .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room already exists"));
+
             //경쟁 상태로 동시에 INSERT -> 유니크 키 위반 -> 이미 생긴 방 재조회
             //동시에 두 요청이 들어와 둘 다 생성하려 할 때 -> DB 유니크 제약 위반 발생
             //예외 캐치 후 이미 만들어진 것을 재조회해 반환 -> 멱등성/경쟁 상태 안전
             //전체 : DB 레벨에 유니크 인덱스가 있어야 이 패턴이 완성됨 (종류별로 room_kind, post_id, seller_user_no, buyer_user_no 등)
-            return switch (kind){
-                case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
-                        .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
-                case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
-                        .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
-                case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
-                        .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
-                default -> throw new ResponseStatusException(CONFLICT, "invalid room type");
-            };
+//            return switch (kind){
+//                case POST -> roomRepo.findByRoomKindAndPostIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
+//                        .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
+//                case AUCTION -> roomRepo.findByRoomKindAndAuctionIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
+//                        .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
+//                case ORDER -> roomRepo.findByRoomKindAndOrderIdAndSeller_UserNoAndBuyer_UserNo(kind, resourceId, sellerUserNo, buyerUserNo)
+//                        .orElseThrow(() -> new ResponseStatusException(CONFLICT, "room exists but not retrievable"));
+//                default -> throw new ResponseStatusException(CONFLICT, "invalid room type");
+//            };
         }
     }
 
@@ -206,7 +216,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                     ensureMember(saved, buyer);
                     ensureMember(saved, bot);
 
-                    return roomRepo.save(botRoom);
+                    return saved;
                 });
     }
 }

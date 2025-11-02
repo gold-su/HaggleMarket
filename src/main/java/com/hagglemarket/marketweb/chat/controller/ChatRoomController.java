@@ -63,6 +63,9 @@ public class ChatRoomController {
                                         @RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "20") int size
                                         ){
+        //로그인 시 해글봇 방 자동 생성
+        roomService.getOrCreateBotRoom(me.getUserNo());
+
         var rooms = roomService.listMyRooms(me.getUserNo(), PageRequest.of(page, size));
 
         return  rooms.map(room->{

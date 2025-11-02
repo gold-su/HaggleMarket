@@ -16,4 +16,6 @@ public interface ChatRoomService {
     void closeRoom(Integer roomId, Integer meUserNo);  //방 닫기(참여자만)
     //닫힌 방을 다시 열기, 필요 시 다시 채팅 재게
     void reopenRoom(Integer roomId, Integer meUserNo); //방 다시 열기(참여자만)
+
+    ChatRoom getOrCreateBotRoom(Integer userNo);
 }
