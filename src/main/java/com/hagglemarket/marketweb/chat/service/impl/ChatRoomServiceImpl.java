@@ -15,6 +15,7 @@ import com.hagglemarket.marketweb.user.service.BotUserSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -167,7 +168,20 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         //판매자 또는 구매자로 내가 속한 방들
         //updated_at DESC 정렬 -> "최근 대화 순" 목록에 유용
         //성능 포인트 : chat_rooms.updated_at에 인덱스 있으면 매우 빠름
-        return roomRepo.findBySeller_UserNoOrBuyer_UserNoOrderByUpdatedAtDesc(meUserNo, meUserNo, page);
+//        return roomRepo.findBySeller_UserNoOrBuyer_UserNoOrderByUpdatedAtDesc(meUserNo, meUserNo, page);
+        var rooms = roomRepo.findBySeller_UserNoOrBuyer_UserNoOrderByUpdatedAtDesc(meUserNo,meUserNo, page);
+
+        //봇방을 항상 첫 번째로 정렬
+        var sorted = rooms.getContent().stream()
+                .sorted((a,b) ->{
+                    boolean aBot = a.getRoomKind() == RoomKind.BOT;
+                    boolean bBot = b.getRoomKind() == RoomKind.BOT;
+                    if(aBot && !bBot) return -1;
+                    if(!aBot && bBot) return 1;
+                    return b.getUpdatedAt().compareTo(a.getUpdatedAt());
+                })
+                .toList();
+        return new PageImpl<>(sorted, page, rooms.getTotalElements());
     }
 
     @Override
