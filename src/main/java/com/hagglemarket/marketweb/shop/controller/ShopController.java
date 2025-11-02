@@ -4,6 +4,8 @@ import com.hagglemarket.marketweb.shop.dto.*;
 import com.hagglemarket.marketweb.shop.service.ProductQueryService;
 import com.hagglemarket.marketweb.shop.service.ShopService;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
+import com.hagglemarket.marketweb.shop.service.VisitService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,13 +17,17 @@ import org.springframework.web.bind.annotation.*;
 public class ShopController {
     private final ShopService shopService;
     private final ProductQueryService productQueryService;
+    private final VisitService  visitService;
 
     // 공개: 상점 프로필
     @GetMapping("/{userNo}")
-    public ShopProfileDto getShop(@PathVariable int userNo) {
+    public ShopProfileDto getShop(@PathVariable int userNo,
+                                  @AuthenticationPrincipal CustomUserDetails me,
+                                  HttpSession session) {
+        Integer visitorUserNo = (me != null) ? me.getUserNo() : null;
+        visitService.recordVisit("SHOP", userNo, visitorUserNo, session); // ✅ 추가된 한 줄
         return shopService.getProfile(userNo);
     }
-
     // 공개: 상점 통계(집계뷰)
     @GetMapping("/{userNo}/stats")
     public ShopStatsDto stats(@PathVariable int userNo) {
@@ -50,6 +56,15 @@ public class ShopController {
     @PreAuthorize("isAuthenticated()")
     public void updateMe(@AuthenticationPrincipal CustomUserDetails me,
                          @RequestBody ShopProfileUpdateRequest req) {
+        shopService.updateProfile(me.getUserNo(), req);
+    }
+
+    @PutMapping("/me/intro")
+    @PreAuthorize("isAuthenticated()")
+    public void updateIntro(@AuthenticationPrincipal CustomUserDetails me,
+                            @RequestBody String intro) {
+        ShopProfileUpdateRequest req = new ShopProfileUpdateRequest();
+        req.setIntro(intro);
         shopService.updateProfile(me.getUserNo(), req);
     }
 }

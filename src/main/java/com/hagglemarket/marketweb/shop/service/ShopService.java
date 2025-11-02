@@ -98,9 +98,10 @@ public class ShopService {
                 .userNo(s.getUserNo())
                 .nickname(nickname)
                 .intro(s.getIntro())
-                .profileUrl(profileUrl) // ✅ 여기!
+                .profileUrl(profileUrl)
                 .verified(s.isVerified())
                 .storeOpenedAt(s.getOpenedAt())
+                .visitCount(s.getVisitCount())
                 .build();
     }
 }

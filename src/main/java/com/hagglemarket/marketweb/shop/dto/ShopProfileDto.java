@@ -14,4 +14,6 @@ public class ShopProfileDto {
     private String profileUrl;
     private boolean verified;
     private LocalDateTime storeOpenedAt;
+
+    private Integer visitCount;
 }

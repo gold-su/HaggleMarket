@@ -3,6 +3,7 @@ package com.hagglemarket.marketweb.post.controller;
 import com.hagglemarket.marketweb.post.dto.*;
 import com.hagglemarket.marketweb.post.service.PostService;
 import com.hagglemarket.marketweb.security.CustomUserDetails;
+import com.hagglemarket.marketweb.shop.service.VisitService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class PostController {
 
     private final PostService postService;
+    private final VisitService visitService;
 
     // 게시물 등록
     @PostMapping
@@ -67,21 +69,16 @@ public class PostController {
     @GetMapping("/detail/{postId}")
     public ResponseEntity<PostDetailResponse> getPostDetail(
             @PathVariable int postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request) {
 
         Integer userNo = userDetails != null ? userDetails.getUserNo() : null;
+
+        visitService.recordVisit("PRODUCT", postId, userNo, request.getSession());
 
         PostDetailResponse response = postService.getPostDetail(postId, userNo);
         return ResponseEntity.ok(response);
     }
-
-    @PostMapping("/{postId}/hit")
-    public ResponseEntity<Void> increaseHit(@PathVariable Integer postId,
-                                            HttpServletRequest request) {
-        postService.increaseHitWithSession(postId, request);
-        return ResponseEntity.ok().build();
-    }
-
     @PutMapping("/{postId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updatePost(
