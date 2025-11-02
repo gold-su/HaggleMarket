@@ -175,61 +175,6 @@ public class PostService {
                 .build();
     }
 
-
-//    @Transactional
-//    public void increaseHit(Integer postId, HttpServletRequest request, CustomUserDetails user) {
-//        try {
-//            Post post = postRepository.findById(postId)
-//                    .orElseThrow(() -> new RuntimeException("해당 게시물 없음"));
-//
-//            String userKey;
-//            if (user != null) {
-//                userKey = "USER_" + user.getUserNo(); // 로그인 사용자 기준
-//            } else {
-//                userKey = "IP_" + request.getRemoteAddr(); // 비로그인 → IP 기준
-//            }
-//
-//            String redisKey = "post_hit:" + postId + ":" + userKey;
-//
-//            if (redisTemplate.hasKey(redisKey)) {
-//                return;
-//            }
-//
-//            post.increaseHit();
-//            log.info(" 조회수 증가: postId={}, hit={}", postId, post.getHit());
-//            redisTemplate.opsForValue().set(redisKey, "viewed", Duration.ofSeconds(10));
-//
-//        } catch (Exception e) {
-//            log.error("조회수 증가 중 예외 발생: {}", e.getMessage(), e);
-//            throw e;
-//        }
-//    }
-    @Transactional
-    public void increaseHitWithSession(Integer postId, HttpServletRequest request) {
-        Post post = postRepository.findById(postId)
-            .orElseThrow(() -> new RuntimeException("해당 게시물 없음"));
-
-        HttpSession session = request.getSession();
-        Object viewedObj = session.getAttribute("viewedPosts");
-
-        Set<Integer> viewedPosts;
-
-        if (viewedObj instanceof Set<?>) {
-            // 경고 억제 및 캐스팅
-            @SuppressWarnings("unchecked")
-            Set<Integer> safeCast = (Set<Integer>) viewedObj;
-            viewedPosts = safeCast;
-        } else {
-            viewedPosts = new HashSet<>();
-        }
-
-        if (!viewedPosts.contains(postId)) {
-            post.increaseHit(); // 실제 조회수 증가
-            viewedPosts.add(postId); // 세션에 저장
-            session.setAttribute("viewedPosts", viewedPosts); // 세션 갱신
-        }
-    }
-
     @Transactional
     public void updatePost(int postId, PostUpdateRequestDto dto, int userNo) throws AccessDeniedException {
         Post post = postRepository.findById(postId)

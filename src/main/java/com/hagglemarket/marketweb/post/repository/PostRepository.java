@@ -19,7 +19,12 @@ public interface PostRepository extends JpaRepository<Post,Integer> {
     @Modifying
     @Query(value="UPDATE posts SET like_count = like_count + 1 WHERE post_id=:postId", nativeQuery=true)
     int incrementLikeCount(@Param("postId") int postId);
+
     @Modifying
     @Query(value="UPDATE posts SET like_count = GREATEST(like_count - 1, 0) WHERE post_id=:postId", nativeQuery=true)
     int decrementLikeCount(@Param("postId") int postId);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.hit = p.hit + 1 WHERE p.postId = :postId")
+    void incrementHit(int postId);
 }

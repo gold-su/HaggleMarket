@@ -68,6 +68,9 @@ public class SecurityConfig {
                                 "/api/shops/**"
                         ).permitAll()
 
+                        // ✅ 상점 소개글 수정은 로그인 필요
+                        .requestMatchers(HttpMethod.PUT, "/api/shops/me/intro").authenticated()
+
                         // ✅ 업로드 리소스 및 AI 관련
                         .requestMatchers("/uploads/**", "/api/ai/**").permitAll()
 
