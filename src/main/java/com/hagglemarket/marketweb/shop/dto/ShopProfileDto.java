@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Setter
 @Getter
 @Builder
 @AllArgsConstructor @NoArgsConstructor
@@ -14,6 +15,7 @@ public class ShopProfileDto {
     private String profileUrl;
     private boolean verified;
     private LocalDateTime storeOpenedAt;
+    private Long productCount;
 
     private Integer visitCount;
 }

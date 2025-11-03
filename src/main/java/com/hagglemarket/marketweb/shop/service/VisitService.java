@@ -1,6 +1,5 @@
 package com.hagglemarket.marketweb.shop.service;
 
-import com.hagglemarket.marketweb.post.repository.PostRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Service;
 public class VisitService {
 
     private final ShopVisitTxService shopVisitTxService;
-    private final PostRepository postRepo;
+    private final ProductVisitService productVisitService; // ✅ 새 서비스 주입
 
     public void recordVisit(String type, int targetId, Integer visitorUserNo, HttpSession session) {
         if (visitorUserNo == null) return;
@@ -21,20 +20,13 @@ public class VisitService {
         try {
             switch (type.toUpperCase()) {
                 case "SHOP" -> shopVisitTxService.saveVisit(targetId, visitorUserNo);
-                case "PRODUCT" -> recordProductVisit(targetId);
+                case "PRODUCT" -> productVisitService.increaseHit(targetId); // ✅ 분리된 서비스 호출
             }
-        } catch (Exception ignored) {
-            System.out.println("⚠️ VisitService 예외 무시 (rollback 방지)");
+        } catch (Exception e) {
+            System.out.println("⚠️ VisitService 예외 무시: " + e.getMessage());
+            e.printStackTrace();
         }
 
         session.setAttribute(visitKey, true);
-    }
-
-    private void recordProductVisit(int postId) {
-        try {
-            postRepo.incrementHit(postId);
-        } catch (Exception e) {
-            System.out.println("⚠️ 조회수 증가 실패 (무시됨)");
-        }
     }
 }
