@@ -39,6 +39,8 @@ public class SecurityConfig {
                         // ✅ WebSocket 허용
                         .requestMatchers("/ws/**").permitAll()
 
+                        .requestMatchers("/api/chat/**").permitAll()
+
                         // ✅ 로그인 / 회원가입 허용
                         .requestMatchers(
                                 "/users/login",
@@ -115,6 +117,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("https://hagglemarket.onrender.com");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.addExposedHeader("Authorization");
