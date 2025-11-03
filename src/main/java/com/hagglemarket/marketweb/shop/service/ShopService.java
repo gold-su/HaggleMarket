@@ -34,8 +34,23 @@ public class ShopService {
     public ShopProfileDto getProfile(int userNo) {
         Shop shop = shopRepo.findByUserNo(userNo)
                 .orElseThrow(() -> new IllegalArgumentException("상점이 존재하지 않습니다: " + userNo));
-        return toDto(shop);
+
+        // ✅ 상품 총합 계산 (뷰에서 가져옴)
+        ShopStatsView stats = statsRepo.findById(userNo).orElse(null);
+        long totalProducts = 0L;
+        if (stats != null) {
+            totalProducts = nz(stats.getTotalPosts()) + nz(stats.getTotalAuctions());
+        }
+
+        // ✅ 기존 DTO 생성
+        ShopProfileDto dto = toDto(shop);
+
+        // ✅ 상품 개수 세팅
+        dto.setProductCount(totalProducts);
+
+        return dto;
     }
+
 
     @Transactional
     public void updateProfile(int userNo, ShopProfileUpdateRequest req) {
@@ -63,10 +78,14 @@ public class ShopService {
                 .map(Shop::getOpenedAt)
                 .orElse(null);
 
+        long totalProducts = nz(v.getTotalPosts()) + nz(v.getTotalAuctions()); // ✅ 추가
+        long activeProducts = nz(v.getActivePosts()) + nz(v.getActiveAuctions()); // (선택: 활성상품 합산)
+        long soldProducts = nz(v.getSoldPosts()) + nz(v.getSoldAuctions()); // (선택: 판매완료 합산)
+
         return ShopStatsDto.builder()
-                .totalProducts(nz(v.getTotalPosts()))
-                .activeProducts(nz(v.getActivePosts()))
-                .soldProducts(nz(v.getSoldPosts()))
+                .totalProducts(totalProducts)   // ✅ 변경: 합산된 값
+                .activeProducts(activeProducts) // ✅ 선택: 합산해도 됨
+                .soldProducts(soldProducts)     // ✅ 선택: 합산해도 됨
                 .totalAuctions(nz(v.getTotalAuctions()))
                 .activeAuctions(nz(v.getActiveAuctions()))
                 .soldAuctions(nz(v.getSoldAuctions()))
@@ -78,6 +97,7 @@ public class ShopService {
                 .storeOpenedAt(openDate)
                 .build();
     }
+
 
     private long nz(Long v) { return v == null ? 0L : v; }
     private BigDecimal nzb(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
