@@ -28,7 +28,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // 🔹 CORS 설정 허용
-                .cors().and()
+//                .cors().and()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // 🔹 CSRF 비활성화 (JWT 기반이므로)
                 .csrf(csrf -> csrf.disable())
                 // 🔹 세션 비활성화
