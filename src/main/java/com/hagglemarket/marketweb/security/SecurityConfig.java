@@ -118,6 +118,7 @@ public class SecurityConfig {
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://localhost:5173");
         config.addAllowedOrigin("https://hagglemarket.onrender.com");
+        config.addAllowedOrigin("https://hagglemarket-front-react.onrender.com");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.addExposedHeader("Authorization");
