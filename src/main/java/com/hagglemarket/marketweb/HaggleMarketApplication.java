@@ -12,4 +12,5 @@ public class HaggleMarketApplication {
         SpringApplication.run(HaggleMarketApplication.class, args);
     }
 
+
 }
