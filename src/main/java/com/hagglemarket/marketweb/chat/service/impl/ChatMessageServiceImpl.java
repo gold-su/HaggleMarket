@@ -14,6 +14,7 @@ import com.hagglemarket.marketweb.user.repository.UserRepository;
 import com.hagglemarket.marketweb.user.service.BotUserSupport;
 import com.hagglemarket.marketweb.websocket.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,11 +38,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ChatMessageRepository messageRepo;
     private final ChatRoomRepository roomRepo;
     private final UserRepository userRepo;
-
     private final BotUserSupport botUserSupport;
     private final AiChatController aiChatController;
-
     private final ChatWebSocketService chatWebSocketService;
+    private final ApplicationEventPublisher eventPublisher;
 //
 //    @Override @Transactional
 //    public ChatMessage sendChat(int roomId, int senderNo, String content, Long clientMsgId){
