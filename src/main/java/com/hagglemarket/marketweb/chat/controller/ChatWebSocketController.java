@@ -60,66 +60,66 @@ public class ChatWebSocketController {
         ChatMessageRes response = ChatMessageRes.from(saved, senderNo);
         chatWebSocketService.broadcastChat(roomId, response);
 
-        // AI 챗봇 방이면 AI 답변 트리거
-        if (saved.getRoom().getRoomKind() == RoomKind.BOT) {
-            int botNo = botUserSupport.getOrCreateBotUser().getUserNo();
-
-//            // AI 답변 가져오기
-//            String aiAnswer = chatWebSocketService.askToAiBot(req.getContent());
+//        // AI 챗봇 방이면 AI 답변 트리거
+//        if (saved.getRoom().getRoomKind() == RoomKind.BOT) {
+//            int botNo = botUserSupport.getOrCreateBotUser().getUserNo();
 //
-//            // AI 메시지 저장
-//            ChatMessage botReply = chatMessageService.sendChat(roomId, botNo, aiAnswer, null);
-//
-//            // AI 메시지도 실시간 전송
-//            ChatMessageRes botResponse = ChatMessageRes.from(botReply, senderNo);
-//            chatWebSocketService.broadcastChat(roomId, botResponse);
-//
-//            System.out.println("[BOT] AI 응답 실시간 전송 완료");
-//            // 중복 실행 방지용 락 (메시지 단위)
-//            String key = "BOT_LOCK_" + saved.getRoom().getId() + "_" + saved.getId();
-//            if (botReplyGuard.tryLock(key, 5)) { // 5초 내 중복 방지
+////            // AI 답변 가져오기
+////            String aiAnswer = chatWebSocketService.askToAiBot(req.getContent());
+////
+////            // AI 메시지 저장
+////            ChatMessage botReply = chatMessageService.sendChat(roomId, botNo, aiAnswer, null);
+////
+////            // AI 메시지도 실시간 전송
+////            ChatMessageRes botResponse = ChatMessageRes.from(botReply, senderNo);
+////            chatWebSocketService.broadcastChat(roomId, botResponse);
+////
+////            System.out.println("[BOT] AI 응답 실시간 전송 완료");
+////            // 중복 실행 방지용 락 (메시지 단위)
+////            String key = "BOT_LOCK_" + saved.getRoom().getId() + "_" + saved.getId();
+////            if (botReplyGuard.tryLock(key, 5)) { // 5초 내 중복 방지
+////                new Thread(() -> {
+////                    try {
+////                        String aiAnswer = chatWebSocketService.askToAiBot(req.getContent());
+////                        ChatMessage botReply = chatMessageService.sendChat(roomId, botNo, aiAnswer, null);
+////                        ChatMessageRes botResponse = ChatMessageRes.from(botReply, senderNo);
+////                        chatWebSocketService.broadcastChat(roomId, botResponse);
+////                        System.out.println("[BOT] AI 응답 실시간 전송 완료");
+////                    } catch (Exception e) {
+////                        e.printStackTrace();
+////                    } finally {
+////                        botReplyGuard.unlock(key);
+////                    }
+////                }).start();
+////            }
+//            //중복 응답 방지용 락
+//            //동일한 방(roomId) + 동일한 clientMsgId 조합에 대해
+//            //5초 이내에는 AI가 중복 응답하지 않도록 막는다.
+//            String key = "BOT_LOCK_" + roomId + "_" + req.getClientMsgId();
+//            if (botReplyGuard.tryLock(key, 5)) {
+//                //새 thread 에서 AI 호출 (비동기)
 //                new Thread(() -> {
 //                    try {
+//                        //AI API 호출
 //                        String aiAnswer = chatWebSocketService.askToAiBot(req.getContent());
+//                        //AI 답변 메시지를 DB에 저장
 //                        ChatMessage botReply = chatMessageService.sendChat(roomId, botNo, aiAnswer, null);
+//                        //AI 답변을 구독자에게 브로드캐스트
 //                        ChatMessageRes botResponse = ChatMessageRes.from(botReply, senderNo);
 //                        chatWebSocketService.broadcastChat(roomId, botResponse);
+//
 //                        System.out.println("[BOT] AI 응답 실시간 전송 완료");
+//
 //                    } catch (Exception e) {
 //                        e.printStackTrace();
 //                    } finally {
+//                        //락 해제
 //                        botReplyGuard.unlock(key);
 //                    }
 //                }).start();
+//            } else {
+//                System.out.println("[BOT] 중복 호출 방지됨 (key=" + key + ")");
 //            }
-            //중복 응답 방지용 락
-            //동일한 방(roomId) + 동일한 clientMsgId 조합에 대해
-            //5초 이내에는 AI가 중복 응답하지 않도록 막는다.
-            String key = "BOT_LOCK_" + roomId + "_" + req.getClientMsgId();
-            if (botReplyGuard.tryLock(key, 5)) {
-                //새 thread 에서 AI 호출 (비동기)
-                new Thread(() -> {
-                    try {
-                        //AI API 호출
-                        String aiAnswer = chatWebSocketService.askToAiBot(req.getContent());
-                        //AI 답변 메시지를 DB에 저장
-                        ChatMessage botReply = chatMessageService.sendChat(roomId, botNo, aiAnswer, null);
-                        //AI 답변을 구독자에게 브로드캐스트
-                        ChatMessageRes botResponse = ChatMessageRes.from(botReply, senderNo);
-                        chatWebSocketService.broadcastChat(roomId, botResponse);
-
-                        System.out.println("[BOT] AI 응답 실시간 전송 완료");
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        //락 해제
-                        botReplyGuard.unlock(key);
-                    }
-                }).start();
-            } else {
-                System.out.println("[BOT] 중복 호출 방지됨 (key=" + key + ")");
-            }
-        }
+//        }
     }
 }
