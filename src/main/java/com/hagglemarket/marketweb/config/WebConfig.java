@@ -14,6 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost:5173", "http://localhost:3000","https://hagglemarket-front-react.onrender.com")
                 //리액트에서 사용하게될 각각의 API들을 허용하는 함수
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedHeaders("*")
                 .allowCredentials(true);
     }
 
